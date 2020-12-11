@@ -34,7 +34,8 @@ services:
     container_name: worker
     hostname: worker
     restart: always
-    #depens_on:
+    depens_on:
+      - 'mosquitto'
     #  - 'java'
     ports:
       - '3000:3000'
