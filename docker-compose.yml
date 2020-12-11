@@ -27,6 +27,27 @@ services:
     #logging:
     #  driver: 'none'
 
+  worker:
+    build:
+      context: ./nodejs/docker
+    image: iot_etage/worker
+    container_name: worker
+    hostname: worker
+    restart: always
+    #depens_on:
+    #  - 'java'
+    ports:
+      - '3000:3000'
+      - '3001:3001'
+    volumes:
+      - ./nodejs/src:/worker
+    environment: 
+      - TESTING=TESTING
+    networks:
+      iot-network:
+        ipv4_address: 192.16.1.20
+    command: 'node index.js'
+
   # java:
   #   build:
   #     context: ./java/docker
