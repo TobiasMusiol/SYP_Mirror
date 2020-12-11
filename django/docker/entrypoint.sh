@@ -6,9 +6,9 @@ cd /app
 echo "--- Migrations: start ---"
 python3 manage.py makemigrations
 python3 manage.py showmigrations
-#python manage.py migrate IOT_ETAGE --fake
+python manage.py migrate IOT_ETAGE --fake
 #python manage.py migrate IOT_ETAGE
-#python3 manage.py migrate
+python3 manage.py migrate
 echo "-- Migrations: end ---"
 
 

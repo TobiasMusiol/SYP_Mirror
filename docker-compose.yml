@@ -1,59 +1,32 @@
 version: '3.8'
 services:
-  angular:
+  vue:
     build:
-      context: ./angular/docker
-    image: iot_etage/angular
-    container_name: angular
-    hostname: angular
+      context: ./vue/docker
+    image: iot_etage/vue
+    container_name: vue
+    hostname: vue
     restart: always
     depends_on:
       - 'django'
       #- 'java'
     healthcheck:
-      test: 'curl -f http://localhost:4200 -k'
+      test: 'curl -f http://localhost:8080 -k'
     ports:
-      - '4200:4200'
-      - '4201:4201'
+      - '8080:8080'
+      - '8081:8081'
     volumes:
-      - ./angular/src/IOT-ETAGE:/app
+      - ./vue/src/iot_etage:/app
     environment:
       - TEST=test
     networks:
       iot-network:
         ipv4_address: 192.16.1.10
-    command: 'ng serve --host "0.0.0.0"'
+    command: '/app/node_modules/.bin/vue-cli-service serve --host 0.0.0.0 --port 8080'
     #command: '/bin/bash'
     #tty: true
     #logging:
     #  driver: 'none'
-
-  # vue:
-  #   build:
-  #     context: ./vue/docker
-  #   image: iot_etage/vue
-  #   container_name: vue
-  #   hostname: vue
-  #   restart: always
-  #   depends_on:
-  #     - 'django'
-  #     #- 'java'
-  #   healthcheck:
-  #     test: 'curl -f http://localhost:4200 -k'
-  #   ports:
-  #     - '4200:4200'
-  #   volumes:
-  #     - ./vue/src:/app
-  #   environment:
-  #     - TEST=test
-  #   networks:
-  #     iot-network:
-  #       ipv4_address: 192.16.1.20
-  #   command: 'ng server --host "0.0.0.0"'
-  #   #command: '/bin/bash'
-  #   #tty: true
-  #   #logging:
-  #   #  driver: 'none'
 
   django:
     build:
@@ -63,11 +36,9 @@ services:
     hostname: django
     restart: always
     depends_on:
-      - 'mongo'
-      - 'mysql'
       - 'postgres'
     healthcheck:
-      test: 'curl -f http://localhost:4200 -k'
+      test: 'curl -f http://localhost:8000 -k'
     ports:
       - '8000:8000'
       - '8001:8001'
@@ -77,7 +48,7 @@ services:
       - TEST=test
     networks:
       iot-network:
-        ipv4_address: 192.16.1.30
+        ipv4_address: 192.16.1.20
     command: 'python3 manage.py runserver 0.0.0.0:8000'
     #command: '/bin/bash'
     #tty: true
@@ -105,64 +76,35 @@ services:
   #     # - TEST=test
   #   networks:
   #     iot-network:
-  #       ipv4_address: 192.16.1.40
+  #       ipv4_address: 192.16.1.30
   #   command: # ...
   #   #command: '/bin/bash'
   #   #tty: true
   #   #logging:
   #   #  driver: 'none'
 
-  mongo:
+  mosquitto:
     build:
-      context: ./mongo/docker
-    image: iot_etage/mongo
-    container_name: mongo
-    hostname: mongo
+      context: ./mosquitto/docker
+    image: iot_etage/mosquitto
+    container_name: mosquitto
+    hostname: mosquitto
     restart: always
-    healthcheck:
-      test: echo "db.runCommand("ping").ok | mongo localhost:27017/test --quite"
+    #healthcheck:
+    #  test: 'curl -X GET 'http://localhost:4041/iot/about''
     ports:
-      - '27017:27017'
+      - '1883:1883'
+      - '9001:9001'
     volumes:
-      - mongo-data:/data/db
+      #- mosquitto/configs/mosquitto.conf:/mosquitto/config
+      - ./mosquitto/configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
     environment:
-      - TEST=test
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
-      - MONGO_INITDB_DATABASE=iot_etage_blue
-      - MONGODB_USERNAME=iot-etage-blue-admin
-      - MONGODB_PASSWORD=iot-etage-blue-password
+      - TEST=Test
     networks:
       iot-network:
-        ipv4_address: 192.16.1.50
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
-
-  mysql:
-    build:
-      context: ./mysql/docker
-    image: iot_etage/mysql
-    container_name: mysql
-    hostname: mysql
-    restart: always
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-    ports:
-      - '3306:3306'
-    volumes:
-      - mysql-data:/var/lib/mysql
-    environment:
-      - TEST=test
-      - POSTGRES_PASSWORD=admin_password
-    networks:
-      iot-network:
-        ipv4_address: 192.16.1.60
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
+        ipv4_address: 192.16.1.40
 
   postgres:
     build:
@@ -176,13 +118,13 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - postgres-data:/var/lib/postgresql
+      - postgres-data:/var/lib/postgresql/data
     environment:
       - TEST=test
       - POSTGRES_PASSWORD=admin_password
     networks:
       iot-network:
-        ipv4_address: 192.16.1.70
+        ipv4_address: 192.16.1.50
     #command: '/bin/bash'
     #tty: true
     #logging:
@@ -197,6 +139,88 @@ networks:
         - subnet: '192.16.1.0/24'
 
 volumes:
-  mongo-data:
-  mysql-data:
   postgres-data:
+
+  #mongo-data:
+  #mysql-data:
+
+  # angular:
+  #   build:
+  #     context: ./angular/docker
+  #   image: iot_etage/angular
+  #   container_name: angular
+  #   hostname: angular
+  #   restart: always
+  #   depends_on:
+  #     - 'django'
+  #     #- 'java'
+  #   healthcheck:
+  #     test: 'curl -f http://localhost:4200 -k'
+  #   ports:
+  #     - '4200:4200'
+  #     - '4201:4201'
+  #   volumes:
+  #     - ./angular/src/IOT-ETAGE:/app
+  #   environment:
+  #     - TEST=test
+  #   networks:
+  #     iot-network:
+  #       ipv4_address: 192.16.1.110
+  #   command: 'ng serve --host "0.0.0.0"'
+  #   #command: '/bin/bash'
+  #   #tty: true
+  #   #logging:
+  #   #  driver: 'none'
+
+  # mongo:
+  #   build:
+  #     context: ./mongo/docker
+  #   image: iot_etage/mongo
+  #   container_name: mongo
+  #   hostname: mongo
+  #   restart: always
+  #   healthcheck:
+  #     test: echo "db.runCommand("ping").ok | mongo localhost:27017/test --quite"
+  #   ports:
+  #     - '27017:27017'
+  #   volumes:
+  #     #- mongo-data:/data/db
+  #      - mongo/data:/data/db
+  #   environment:
+  #     - TEST=test
+  #     - MONGO_INITDB_ROOT_USERNAME=admin
+  #     - MONGO_INITDB_ROOT_PASSWORD=password
+  #     - MONGO_INITDB_DATABASE=iot_etage_blue
+  #     - MONGODB_USERNAME=iot-etage-blue-admin
+  #     - MONGODB_PASSWORD=iot-etage-blue-password
+  #   networks:
+  #     iot-network:
+  #       ipv4_address: 192.16.1.120
+  #   #command: '/bin/bash'
+  #   #tty: true
+  #   #logging:
+  #   #  driver: 'none'
+
+  # mysql:
+  #   build:
+  #     context: ./mysql/docker
+  #   image: iot_etage/mysql
+  #   container_name: mysql
+  #   hostname: mysql
+  #   restart: always
+  #   healthcheck:
+  #     test: ['CMD-SHELL', 'pg_isready -U postgres']
+  #   ports:
+  #     - '3306:3306'
+  #   volumes:
+  #     - mysql-data:/var/lib/mysql
+  #   environment:
+  #     - TEST=test
+  #     - POSTGRES_PASSWORD=admin_password
+  #   networks:
+  #     iot-network:
+  #       ipv4_address: 192.16.1.130
+  #   #command: '/bin/bash'
+  #   #tty: true
+  #   #logging:
+  #   #  driver: 'none'

@@ -76,8 +76,12 @@ WSGI_APPLICATION = "IOT_ETAGE.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'iot_etage_blau_db',
+        'USER': 'iot_etage_blau_admin',
+        'PASSWORD': 'iot_etage_blau-password',
+        'HOST': '192.16.1.50',
+        'PORT': '5432',
     }
 }
 
