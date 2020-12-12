@@ -34,7 +34,7 @@ services:
     container_name: worker
     hostname: worker
     restart: always
-    depens_on:
+    depends_on:
       - 'mosquitto'
     #  - 'java'
     ports:
@@ -87,10 +87,10 @@ services:
     #healthcheck:
     #  test: 'curl -X GET 'http://localhost:4041/iot/about''
     ports:
-      - '1883:1883'
-      - '9001:9001'
+      - '1884:1883'
+      #- '1884:1884'
+      #- '9001:9001'
     volumes:
-      #- mosquitto/configs/mosquitto.conf:/mosquitto/config
       - ./mosquitto/configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
