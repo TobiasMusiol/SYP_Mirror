@@ -1,8 +1,28 @@
-var http = require('http');
+let mqtt = require('mqtt');
+require('dotenv').config();
 
-http.createServer(function (req, res) {
-	res.writeHead(200, {
-		'Content-Type': 'text/html'
+let options = {
+	port: process.env.MQTT_PORT,
+	clientId: 'mqttjs_' + Math.random().toString(16).substr(2, 8),
+	username: process.env.MQTT_USER,
+	password: process.env.MQTT_PASS
+	
+};
+let client = mqtt.connect(process.env.MQTT_HOST, options);
+
+client.on('connect', () => {
+	console.log("Worker connected successfully to MQTT Broker");
+	
+	client.subscribe('/test', (e) => {
+		if (e) console.log(`There was an error subscribing to "/test": ${e.message}`);
 	});
-	res.end('Hello World!');
-}).listen(3000);
+});
+
+client.on('message', (topic, payload, packet) => {
+	console.log(`Received [${topic}]: ${payload}`);
+});
+
+client.on('error', (e) => {
+	console.log("There was an error connecting to MQTT Broker.");
+	console.log(e.message);
+});
