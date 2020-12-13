@@ -8,10 +8,10 @@
         <version>2.4.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>de.iotetage</groupId>
-    <artifactId>backend</artifactId>
+    <groupId>de.thkoeln.syp</groupId>
+    <artifactId>iot_etage</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>backend</name>
+    <name>iot_etage</name>
     <description>RestApi als bindeglied fuer Frontend, MQTT Server und Datenbank</description>
 
     <properties>
