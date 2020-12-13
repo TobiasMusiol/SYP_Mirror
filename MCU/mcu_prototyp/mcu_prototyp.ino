@@ -1,18 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-
-const char ssid[] = "UPC555B3BD";
-const char pass[] = "Kcuhkku27zxu";
-
-#define HOSTNAME "SENSOR_PROTOTYPE"
-
-const char MQTT_HOST[] = "192.168.0.97";
-const int MQTT_PORT = 1884;
-const char MQTT_USER[] = "admin";
-const char MQTT_PASS[] = "admin";
-
-const char MQTT_SUB_TOPIC[] = "/test";
-const char MQTT_PUB_TOPIC[] = "/test";
+#include "secrets.h"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -46,19 +34,18 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
   {
     Serial.print((char)payload[i]);
   }
-  Serial.println("");-
+  Serial.println("");
 }
 
 void setup()
 {
   Serial.begin(115200);
-  Serial.println();
-  Serial.println();
+  if(!Serial) delay(500);
   Serial.print("Attempting to connect to SSID: ");
-  Serial.print(ssid);
+  Serial.print(SECRET_SSID);
   WiFi.hostname(HOSTNAME);
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, pass);
+  WiFi.begin(SECRET_SSID, SECRET_PASS);
   while (WiFi.status() != WL_CONNECTED)
   {
     Serial.print(".");
@@ -80,7 +67,7 @@ void loop()
     Serial.print("Checking wifi");
     while (WiFi.waitForConnectResult() != WL_CONNECTED)
     {
-      WiFi.begin(ssid, pass);
+      WiFi.begin(SECRET_SSID, SECRET_PASS);
       Serial.print(".");
       delay(10);
     }
