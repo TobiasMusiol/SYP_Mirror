@@ -24,12 +24,12 @@ services:
     command: '/app/node_modules/.bin/vue-cli-service serve --host 0.0.0.0 --port 8080'
     #command: '/bin/bash'
     #tty: true
-    #logging:
-    #  driver: 'none'
+    logging:
+      driver: 'none'
 
   worker:
     build:
-      context: ./nodejs/docker
+      context: ./nodejs_worker/docker
     image: iot_etage/worker
     container_name: worker
     hostname: worker
@@ -41,12 +41,29 @@ services:
       - '3000:3000'
       - '3001:3001'
     volumes:
-      - ./nodejs/src:/worker
-    environment: 
-      - TESTING=TESTING
+      - ./nodejs_worker/src:/worker
     networks:
       iot-network:
         ipv4_address: 192.16.1.20
+    command: 'node index.js'
+
+  api:
+    build:
+      context: ./nodejs_api/docker
+    image: iot_etage/api
+    container_name: api
+    hostname: api
+    restart: always
+    depends_on:
+      - 'postgres'
+    ports:
+      - '3002:3002'
+      - '3003:3003'
+    volumes:
+      - ./nodejs_api/src:/api
+    networks:
+      iot-network:
+        ipv4_address: 192.16.1.25
     command: 'node index.js'
 
   # java:
@@ -114,7 +131,8 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
-      - TEST=test
+      - TZ=Europe/Berlin
+      - PGTZ=Europe/Berlin
       - POSTGRES_PASSWORD=admin_password
     networks:
       iot-network:
