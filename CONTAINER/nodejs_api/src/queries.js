@@ -12,7 +12,7 @@ const getSensordata = (req, res) => {
 		if (error) {
 			throw error;
 		}
-		res.status(200).json(results.row)
+		res.status(200).json(result.rows)
 	});
 };
 
@@ -22,7 +22,7 @@ const getSensordataById = (req, res) => {
 		if (error) {
 			throw error;
 		}
-		res.status(200).json(results.row)
+		res.status(200).json(result.rows)
 	});
 };
 
