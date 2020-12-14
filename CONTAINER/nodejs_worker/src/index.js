@@ -32,7 +32,7 @@ client.on('message', (topic, payload, packet) => {
 			}
 			if (obj.hasOwnProperty('uid') && obj.hasOwnProperty('sensorType') && obj.hasOwnProperty('payload')) {
 				try {
-					let response = axios.post('http://localhost:3002/sensordata', obj);
+					let response = axios.post('http://api:3002/sensordata', obj);
 					if (response.status >= 200 && response.status < 400) {
 						console.log(`Sensordata has been send successfully.`);
 					}
