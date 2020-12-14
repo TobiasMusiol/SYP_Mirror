@@ -8,5 +8,5 @@
 #define MQTT_USER "<MQTT USERNAME>"
 #define MQTT_PASS "<MQTT PASSWORD>"
 
-#define MQTT_SUB_TOPIC "/test"
-#define MQTT_PUB_TOPIC "/test"
+#define MQTT_SUB_TOPIC "/iot_etage/instructions"
+#define MQTT_PUB_TOPIC "/iot_etage/sensordata"
