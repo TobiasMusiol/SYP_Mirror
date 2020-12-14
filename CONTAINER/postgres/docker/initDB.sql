@@ -12,7 +12,7 @@ ALTER ROLE iot_etage_blau_admin SET timezone TO 'UTC';
 
 \c iot_etage_blau_db 
 
-create table IF NOT EXISTS "sensor" (
+create table IF NOT EXISTS "sensordata" (
     id serial PRIMARY KEY,
     "UID" varchar(30) NOT NULL,
     "SensorType" varchar(30) NOT NULL,

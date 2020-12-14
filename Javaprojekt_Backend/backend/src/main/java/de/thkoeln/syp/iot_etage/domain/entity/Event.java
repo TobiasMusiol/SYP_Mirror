@@ -13,7 +13,7 @@ import javax.persistence.Table;
  * Event beinhaltet die Zustandänderungen des Mikrokontrollers
  */
 @Entity
-@Table(name = "event")
+@Table(name = "Eventdata")
 public class Event {
     @Id
     @Column(name = "id")
@@ -23,10 +23,13 @@ public class Event {
     @Column(name = "action")
     private String action;
 
-    @Column(name = "old_state")
+    @Column(name = "oldState")
     private String oldState;
 
-    @Column(name = "new_state")
+    @Column(name = "newState")
+    private String newState;
+
+    @Column(name = "trigger")
     private String trigger;
 
     @Column(name = "timestamp")
@@ -69,6 +72,14 @@ public class Event {
         return this.trigger;
     }
 
+    public String getNewState() {
+        return this.newState;
+    }
+
+    public void setNewState(String newState) {
+        this.newState = newState;
+    }
+
     public void setTrigger(String trigger) {
         this.trigger = trigger;
     }
@@ -80,5 +91,4 @@ public class Event {
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
-
 }
