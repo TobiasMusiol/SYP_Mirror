@@ -9,26 +9,10 @@ ALTER ROLE iot_etage_blau_admin SET timezone TO 'UTC';
 
 \c iot_etage_blau_db
 
+create table IF NOT EXISTS "iot_etage_sensordata" (id serial PRIMARY KEY, "uid" varchar(30) NOT NULL, "sensorType" varchar(30) NOT NULL, "payload" varchar(30) NULL, "timestamp" timestamp NOT NULL DEFAULT NOW());
+create table IF NOT EXISTS "iot_etage_eventdata" (id serial PRIMARY KEY, "action" varchar(30) NOT NULL, "oldState" varchar(30) NOT NULL, "newState" varchar(30) NOT NULL, "trigger" varchar(30), "timestamp" timestamp NOT NULL DEFAULT NOW());
 
-create table IF NOT EXISTS "IOT_ETAGE_sensordata" (id serial PRIMARY KEY, "UID" varchar(30) NOT NULL, "SensorType" varchar(30) NOT NULL, "payload" varchar(30) NULL, "timestamp" DATE NOT NULL);
-
-/*
-insert into "GAMEDAY_user" ("userName", "userPassword")  values('Admin', 'i82B[;\DRp;z,\g)');
-insert into "GAMEDAY_user" ("userName", "userPassword")  values('Jackson', 'iI-gOd]1gbfXRTKW');
-insert into "GAMEDAY_user" ("userName", "userPassword")  values('Rebecca', '*ss;2Wh.8]vhk"1W');
-*/
-
-create table IF NOT EXISTS "IOT_ETAGE_Eventdata" (id serial PRIMARY KEY, "action" varchar(30) NOT NULL, "oldState" varchar(30) NOT NULL, "newState" varchar(30) NOT NULL, "trigger" varchar(30), "timestamp" DATE NOT NULL);
-
-
-/*
-insert into "GAMEDAY_node" ("nodeName", "nodeUser", "nodeSSHPort")  values('nginx', 'jackson', '2222');
-insert into "GAMEDAY_node" ("nodeName", "nodeUser", "nodeSSHPort")  values('django', 'guiseppe', '22');
-insert into "GAMEDAY_node" ("nodeName", "nodeUser", "nodeSSHPort")  values('mongo', 'lorenzo', '22');
-insert into "GAMEDAY_node" ("nodeName", "nodeUser", "nodeSSHPort")  values('postgres', 'rebecca', '22');
-insert into "GAMEDAY_node" ("nodeName", "nodeUser", "nodeSSHPort")  values('flag', '####', '');
-*/
-
+ALTER DATABASE iot_etage_blau_db SET TIMEZONE TO 'Europe/Berlin';
 
 GRANT ALL PRIVILEGES ON DATABASE iot_etage_blau_db TO postgres;
 GRANT ALL PRIVILEGES ON DATABASE iot_etage_blau_db TO iot_etage_blau_admin;
