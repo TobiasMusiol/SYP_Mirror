@@ -9,7 +9,7 @@ public class EventDto {
     private String oldState;
     private String newState;
     private String trigger;
-    private Date date;
+    private Date timestamp;
 
     // Konstruktoren
     public EventDto(String action, String oldState, String newState, String trigger, Date date) {
@@ -17,12 +17,15 @@ public class EventDto {
         this.oldState = action;
         this.newState = newState;
         this.trigger = trigger;
-        this.date = date;
+        this.timestamp = date;
     }
 
     public EventDto(long id, String action, String oldState, String newState, String trigger, Date date) {
         this(action, oldState, newState, trigger, date);
         this.id = id;
+    }
+
+    public EventDto() {
     }
 
     // Getter und Setter
@@ -64,6 +67,14 @@ public class EventDto {
 
     public void setTrigger(String trigger) {
         this.trigger = trigger;
+    }
+
+    public Date getTimestamp() {
+        return this.timestamp;
+    }
+
+    public void setTimestamp(Date date) {
+        this.timestamp = date;
     }
 
 }

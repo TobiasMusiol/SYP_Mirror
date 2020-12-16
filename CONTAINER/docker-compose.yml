@@ -7,8 +7,8 @@ services:
     container_name: vue
     hostname: vue
     restart: always
-    #depends_on:
-      #- 'java'
+    depends_on:
+      - 'java'
     healthcheck:
       test: 'curl -f http://localhost:8080 -k'
     ports:
@@ -24,8 +24,8 @@ services:
     command: '/app/node_modules/.bin/vue-cli-service serve --host 0.0.0.0 --port 8080'
     #command: '/bin/bash'
     #tty: true
-    logging:
-      driver: 'none'
+    #logging:
+    #  driver: 'none'
 
   worker:
     build:
@@ -34,9 +34,15 @@ services:
     container_name: worker
     hostname: worker
     restart: always
+    environment:
+      - MQTT_HOST='192.16.1.40'
+      - MQTT_PORT=1883
+      - MQTT_USER=user
+      - MQTT_PASS=user
+      - MQTT_SENSORDATA_TOPIC=sensor
     depends_on:
       - 'mosquitto'
-    #  - 'java'
+      - 'java'
     ports:
       - '3000:3000'
       - '3001:3001'
@@ -66,33 +72,34 @@ services:
         ipv4_address: 192.16.1.25
     command: 'node index.js'
 
-  # java:
-  #   build:
-  #     context: ./java/docker
-  #   image: iot_etage/java
-  #   container_name: java
-  #   hostname: java
-  #   restart: always
-  #   depends_on:
-  #     - 'mongo'
-  #     - 'mysql'
-  #     - 'postgres'
-  #   healthcheck:
-  #     test: 'curl -f http://localhost:4200 -k'
-  #   ports:
-  #     - '4200:4200'
-  #   volumes:
-  #     - ./java/src:/app
-  #   environment:
-  #     # - TEST=test
-  #   networks:
-  #     iot-network:
-  #       ipv4_address: 192.16.1.30
-  #   command: # ...
-  #   #command: '/bin/bash'
-  #   #tty: true
-  #   #logging:
-  #   #  driver: 'none'
+  java:
+    build:
+      context: ./java/docker
+    image: iot_etage/java
+    container_name: java
+    hostname: java
+    restart: always
+    depends_on:
+      - 'postgres'
+      - 'mosquitto'
+    healthcheck:
+      test: 'curl -f http://localhost:8090 -k'
+    ports:
+      - '8090:8090'
+      - '8091:8091'
+    volumes:
+      - ./java/src/IoT-Etage:/app
+      - ./java/.m2:/root
+    environment:
+      - TEST=test
+    networks:
+      iot-network:
+        ipv4_address: 192.16.1.30
+    #command: 'java -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=0.0.0.0:8090 de.thkoeln.syp.IoTEtageApplication'
+    command: '/bin/bash'
+    tty: true
+    #logging:
+    #  driver: 'none'
 
   mosquitto:
     build:
@@ -101,12 +108,11 @@ services:
     container_name: mosquitto
     hostname: mosquitto
     restart: always
-    #healthcheck:
-    #  test: 'curl -X GET 'http://localhost:4041/iot/about''
+    healthcheck:
+      test: 'curl -X GET "http://localhost:1883/iot/about"'
     ports:
       - '1884:1883'
       - '1885:1884'
-      #- '9001:9001'
     volumes:
       - ./mosquitto/configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ./mosquitto/data:/mosquitto/data

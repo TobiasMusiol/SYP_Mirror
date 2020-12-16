@@ -117,7 +117,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+#.env
 .venv
 env/
 venv/
@@ -434,3 +434,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,linux,windows,macos,python,django,vuejs,node,java,java-web
+
+# SONSTIGES
+# Maven Ordner
+.m2
