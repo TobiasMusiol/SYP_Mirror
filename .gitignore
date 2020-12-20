@@ -438,3 +438,5 @@ $RECYCLE.BIN/
 # SONSTIGES
 # Maven Ordner
 .m2
+docker-compose.override.yml
+fastapi/

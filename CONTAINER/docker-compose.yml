@@ -24,8 +24,8 @@ services:
     command: '/app/node_modules/.bin/vue-cli-service serve --host 0.0.0.0 --port 8080'
     #command: '/bin/bash'
     #tty: true
-    #logging:
-    #  driver: 'none'
+    logging:
+      driver: 'none'
 
   worker:
     build:
@@ -39,7 +39,7 @@ services:
       - MQTT_PORT=1883
       - MQTT_USER=user
       - MQTT_PASS=user
-      - MQTT_SENSORDATA_TOPIC=sensor
+      - MQTT_SENSORDATA_TOPIC=sensordata
     depends_on:
       - 'mosquitto'
       - 'java'
@@ -52,6 +52,8 @@ services:
       iot-network:
         ipv4_address: 192.16.1.20
     command: 'node index.js'
+    logging:
+      driver: none
 
   api:
     build:
@@ -88,16 +90,16 @@ services:
       - '8090:8090'
       - '8091:8091'
     volumes:
-      - ./java/src/IoT-Etage:/app
-      - ./java/.m2:/root
+      - ../Javaprojekt_Backend/backend/:/app/
+      - java-maven-local-repository:/root/.m2
     environment:
       - TEST=test
     networks:
       iot-network:
         ipv4_address: 192.16.1.30
-    #command: 'java -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=0.0.0.0:8090 de.thkoeln.syp.IoTEtageApplication'
-    command: '/bin/bash'
-    tty: true
+    command: 'java -jar target/iot_etage-0.0.1-SNAPSHOT.jar'
+    #command: '/bin/bash'
+    #tty: true
     #logging:
     #  driver: 'none'
 
@@ -108,8 +110,8 @@ services:
     container_name: mosquitto
     hostname: mosquitto
     restart: always
-    healthcheck:
-      test: 'curl -X GET "http://localhost:1883/iot/about"'
+    #healthcheck:
+    #test: 'curl -X GET "http://localhost:1883/iot/about"'
     ports:
       - '1884:1883'
       - '1885:1884'
@@ -158,3 +160,4 @@ networks:
 
 volumes:
   postgres-data:
+  java-maven-local-repository:

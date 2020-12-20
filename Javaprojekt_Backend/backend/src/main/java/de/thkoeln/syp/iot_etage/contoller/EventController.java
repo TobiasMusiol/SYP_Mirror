@@ -72,7 +72,7 @@ public class EventController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<String> getNewEvent() {
 
-        return ResponseEntity.ok().body("New");
+        return ResponseEntity.ok().body("BroU");
     }
 
     /**
