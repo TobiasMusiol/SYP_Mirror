@@ -442,3 +442,7 @@ docker-compose.override.yml
 fastapi/
 #- VS-Code sql-Extension Dateien
 *.session.sql 
+# End of https://www.toptal.com/developers/gitignore/api/linux,windows,macos,vuejs,vue,java,maven,visualstudiocode,intellij,node
+MCU/mcu_prototyp/secrets.h
+
+tbpass.txt
