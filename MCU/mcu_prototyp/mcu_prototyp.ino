@@ -10,7 +10,7 @@
 #define REFRESH_RATE_MS 10000
 
 DHT dht(DHT_PIN, DHT_TYPE);
-WiFiClient espClient;
+WiFiClientSecure espClient;
 PubSubClient client(espClient);
 StaticJsonDocument<200> doc;
 
@@ -18,6 +18,30 @@ char buf[200];
 byte mac[6];
 
 unsigned long lastMillis = 0;
+
+/* Certificate Authority info */
+/* CA Cert in PEM format */
+
+const char caCert[] PROGMEM = R"EOF(
+-----BEGIN CERTIFICATE-----
+MIIBrjCCARACFCULurSX2xF8WD+FVPHVsq+JoJ5CMAoGCCqGSM49BAMCMBYxFDAS
+BgNVBAMMCzE5Mi4xNi4xLjQwMB4XDTIxMDEyMDEyMTEwM1oXDTMxMDExODEyMTEw
+M1owFjEUMBIGA1UEAwwLMTkyLjE2LjEuNDAwgZswEAYHKoZIzj0CAQYFK4EEACMD
+gYYABABINmZ9vNzZEg6oxo9nCVttcoB0PNjrHfPC+JIq3y9qiumuPBfc0SWXjyYp
+nQnn1pBNekT/q6nQ+BE4RSrIbsjl7gBS9wOPbiKNbUpig3jisrtCxOOe3E+hn2Bc
+Dw4Ci5nsYYYC0q4UMWvkZ03uIokMjiuIcHyPwrhgr6PvObnPBBCWqzAKBggqhkjO
+PQQDAgOBiwAwgYcCQgE1UE6LzT/q9H0ClGliBGWVB1gEGej13dJszYwpDVL1sia8
+dtzYqaQdWFDDCAwwhXffDMm1xuQ92rcjLF3s7+ZXygJBQR2Z16hpSypHQWFngrFD
+Zgk70j2ZhhXE14czcHH7IuM6pid4bldDHuPBVwrxkdDL32uXCED2YqO8+ydlN7g/
+aOQ=
+-----END CERTIFICATE-----
+)EOF";
+
+/* MQTT broker cert SHA1 ginerprint */
+
+const uint8_t mqttCertFingerprint[] = {0xA9, 0x01, 0x05, 0x2E, 0x5F, 0x52, 0x55, 0x6A, 0x17, 0xDA, 0x55, 0x34, 0x04, 0x5A, 0xD7, 0xA9, 0x7B, 0xE3, 0x75, 0x59};
+
+X509List caCertX509(caCert);
 
 void mqtt_connect()
 {
@@ -79,6 +103,10 @@ void setup()
   Serial.print(mac[1],HEX);
   Serial.print(":");
   Serial.println(mac[0],HEX);
+
+  espClient.setTrustAnchors(&caCertX509);
+  espClient.allowSelfSignedCerts();
+  espClient.setFingerprint(mqttCertFingerprint);
 
   client.setServer(MQTT_HOST, MQTT_PORT);
   client.setCallback(receivedCallback);
