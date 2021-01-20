@@ -111,6 +111,8 @@ services:
     ports:
       - '1884:1883'
       - '1885:1884'
+      - '8884:8883'
+      #- '9001:9001'
     volumes:
       - ./mosquitto/configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ./mosquitto/data:/mosquitto/data
