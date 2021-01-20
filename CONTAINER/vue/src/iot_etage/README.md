@@ -1,4 +1,4 @@
-# iot_etage
+# iot_etage_vue2
 
 ## Project setup
 ```

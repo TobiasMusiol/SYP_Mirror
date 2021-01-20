@@ -17,15 +17,13 @@ services:
     volumes:
       - ./vue/src/iot_etage:/app
     environment:
-      - TEST=test
+      - VUE_APP_ENV=prod
+      - VUE_APP_BASE_URL='http://localhost:8080'
+      - VUE_APP_BACKEND_URL=http://localhost:8090
     networks:
       iot-network:
         ipv4_address: 192.16.1.10
     command: '/app/node_modules/.bin/vue-cli-service serve --host 0.0.0.0 --port 8080'
-    #command: '/bin/bash'
-    #tty: true
-    logging:
-      driver: 'none'
 
   worker:
     build:
@@ -40,6 +38,7 @@ services:
       - MQTT_USER=user
       - MQTT_PASS=user
       - MQTT_SENSORDATA_TOPIC=sensordata
+      - ENV=prod
     depends_on:
       - 'mosquitto'
       - 'java'
@@ -52,8 +51,6 @@ services:
       iot-network:
         ipv4_address: 192.16.1.20
     command: 'node index.js'
-    logging:
-      driver: none
 
   api:
     build:
@@ -64,6 +61,8 @@ services:
     restart: always
     depends_on:
       - 'postgres'
+    environment:
+      - ENV=prod
     ports:
       - '3002:3002'
       - '3003:3003'
@@ -90,18 +89,15 @@ services:
       - '8090:8090'
       - '8091:8091'
     volumes:
-      - ../Javaprojekt_Backend/backend/:/app/
+      - ./java/src/IoTEtage/:/app/
       - java-maven-local-repository:/root/.m2
     environment:
-      - TEST=test
+      - ENV=prod
+      - REBUILD=true
     networks:
       iot-network:
         ipv4_address: 192.16.1.30
     command: 'java -jar target/iot_etage-0.0.1-SNAPSHOT.jar'
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
 
   mosquitto:
     build:
@@ -120,7 +116,7 @@ services:
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
     environment:
-      - TEST=Test
+      - ENV=prod
     networks:
       iot-network:
         ipv4_address: 192.16.1.40
@@ -138,17 +134,15 @@ services:
       - '5432:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./postgres/SQL-Scripts:/scripts
     environment:
       - TZ=Europe/Berlin
       - PGTZ=Europe/Berlin
       - POSTGRES_PASSWORD=admin_password
+      - ENV=prod
     networks:
       iot-network:
         ipv4_address: 192.16.1.50
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
 
 networks:
   iot-network:

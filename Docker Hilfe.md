@@ -42,3 +42,12 @@ services:
     command: echo "I will be Disabled"
     restart: 'no'
 ```
+
+
+### Container
+
+#### Postgres
+
+1. .sql-Script im Container ausführen
+   1. `docker exec -it postgres bash`
+   2. im Container dann ins Verzeichnes mit SQL-Skript gehen und ausführen: `psql -U iot_etage_blau_admin -d iot_etage_blau_db -a -f DATEINAME.sql`

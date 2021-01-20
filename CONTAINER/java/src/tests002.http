@@ -1,0 +1,92 @@
+# /auth
+
+### UserTypen bekommen 
+GET http://localhost:8090/auth/useritems HTTP/1.1
+Content-Type: application/json
+
+### Apps bekommen
+GET http://localhost:8090/auth/apps HTTP/1.1
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJLaXJpbGw1IiwiYXV0aCI6eyJhdXRob3JpdHkiOiJPRkZJQ0VfV09SS0VSIn0sImlhdCI6MTYxMDgzNzM0NywiZXhwIjoxNjEwODQwOTQ3fQ.KE25Hq8b51x4CFITQiFXvpgDdKQMtQcAQDrDiWCD8jA
+
+### Regsiter
+POST http://localhost:8090/auth/register HTTP/1.1
+Content-Type: application/json
+
+{ 
+  "name": "Kirill15",
+  "password": "Kirill5",
+  "role": "FACILITY_MANAGER"
+}
+
+
+### Login 
+POST http://localhost:8090/auth/login HTTP/1.1
+Content-Type: application/json
+
+{ 
+  "name": "Kirill1",
+  "password": "Kirill1"
+}
+
+#### GET Events
+GET http://localhost:8090/events HTTP/1.1
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJLaXJpbGw1IiwiYXV0aCI6eyJhdXRob3JpdHkiOiJPRkZJQ0VfV09SS0VSIn0sImlhdCI6MTYxMTA4NzU0MiwiZXhwIjoxNjExMDkxMTQyfQ.NntDABZtsA3W_BDdMAQv8jUziTRpCeDdzRTX8C5Gaec 
+
+### POST Events
+POST http://localhost:8090/sensors HTTP/1.1
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJLaXJpbGw1IiwiYXV0aCI6eyJhdXRob3JpdHkiOiJPRkZJQ0VfV09SS0VSIn0sImlhdCI6MTYxMTA1NzY5NCwiZXhwIjoxNjExMDYxMjk0fQ.pt1kwdK3C-AaedfS8TL8leMJu8vtJXnUqez89uFjsYI
+user: Kirill
+
+[
+  {
+    "id": 0,
+    "oldState": "Test 2",
+    "action": "Action 2",
+    "newState": "State Neu 2",
+    "trigger": "Trigger Test 2",
+    "timestamp": "2020-10-10"
+  },
+  {
+    "id": 0,
+    "action": "Test 3",
+    "oldState": "Test 3",
+    "newState": "State Neu 3",
+    "trigger": "Trigger Test 3",
+    "timestamp": "2020-10-10"
+  }
+]
+
+###
+GET http://localhost:8090/events HTTP/1.1
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJLaXJpbGw1IiwiYXV0aCI6eyJhdXRob3JpdHkiOiJPRkZJQ0VfV09SS0VSIn0sImlhdCI6MTYxMTA4NzU0MiwiZXhwIjoxNjExMDkxMTQyfQ.NntDABZtsA3W_BDdMAQv8jUziTRpCeDdzRTX8C5Gaec
+
+### /light
+GET http://localhost:8090/light HTTP/1.1
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJLaXJpbGw1IiwiYXV0aCI6eyJhdXRob3JpdHkiOiJPRkZJQ0VfV09SS0VSIn0sImlhdCI6MTYxMTA4ODAyNiwiZXhwIjoxNjExMDkxNjI2fQ.jt6CQw0s7C4JXX5VyEUJWN6NQLlSKKGhZ_EUCOnqbGQ
+###
+POST http://localhost:8090/sensors HTTP/1.1
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJLaXJpbGwxIiwiYXV0aCI6eyJhdXRob3JpdHkiOiJBRE1JTiJ9LCJpYXQiOjE2MTExNDQ2MzksImV4cCI6MTYxMTE0ODIzOX0.NciO94tB_yPPm_tGR2WpF-w3TADblhCxLCz5m2mylA8
+user: Kirill
+
+[
+  {
+    "id": 0,
+    "uid": "1",
+    "sensorType": "SensorTyp 2",
+    "payload": "Payload Neu 2",
+    "timestamp": "2020-10-10"
+  },
+  {
+    "id": 0,
+    "uid": "2",
+    "sensorType": "SensorTyp 3",
+    "payload": "Payload Neu 3",
+    "timestamp": "2020-10-10"
+  }
+]
