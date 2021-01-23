@@ -103,7 +103,23 @@ in */config*
   2. *config.js* benutzen, falls man irgendwelche Konstanten für Vue festlegen möchte
   3. *helper.js* wird nicht verwendet, da Vuex verwendet
 */services* wird nicht benötigt. Für guten Still, sollte man aber hier die Logic für Komponenten haben, damit die Komponten, nicht zu unübersichtich werden
-  
+
+#### URLs
+
+kann man auch unter */src/config/router.js* nachschauen oder verändern
+* *http://localhost:8080/*
+* *http://localhost:8080/login*
+* *http://localhost:8080/sensors*
+* *http://localhost:8080/events/*
+* *http://localhost:8080/beleuchtungssteuerung*
+* *http://localhost:8080/beleuchtungssteuerung/edit*
+* *http://localhost:8080/markisolettensteuerung* 
+* *http://localhost:8080/markisolettensteuerung/edit* -> fehlt (eventuell kann man dierekt in */markisolettensteuerung reintun)
+* *http://localhost:8080/belueftungssteuerung*
+* *http://localhost:8080/belueftungssteuerung/edit* 
+* *http://localhost:8080/raumstaus*
+* *http://localhost:8080/raumstaus/edit*
+
 ### Backend
 
 1. Spring-Boot - Kern Framework
@@ -127,3 +143,18 @@ Hilfreiche Seiten für Authentifizierung:
 * *StartRunner.java* wird beim Start der App ausgeführt. Momentan werden die User **Admin** und **MCU** erstellt, da in der UI man nur Std-User, Facility Manager und Büromitarbeiter erstellen kann
 
 Man kann die Java-App im Container oder local ausführen.
+
+#### URLs
+
+muss man aus den *XXXController.java* Dateien herauslesen oder veränern
+
+* *http://localhost:8090/auth/apps* - GET -"Apps*-Namen,Icons holen
+* *http://localhost:8090/auth/login* - POST
+* *http://localhost:8090/auth/register* - POST
+* *http://localhost:8090/awning* - GET - Markisolettensteuerung (POST nicht implementiert)
+* */http://localhost:8090/events* - GET,POST(muss Liste übergeben, auch wenn nur ein Eintrag)
+  * auch */events/ID* - GET (wrid aber glaube ich nicht benötigt)
+* *http://localhost:8090/sensors* - GET, POST(muss Liste übergeben, auch wenn nur ein Eintrag)
+  * auch */sensors/ID* -GET (wird aber glaube ich nicht benötigt)
+* *http://localhost:8090/licht* - GET - Beleuchtungsteuerng (POST returnt momentan nur das übergeben Objekt)
+* *http://localhost:8090/raumstatus* - GET
