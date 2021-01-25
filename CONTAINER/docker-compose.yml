@@ -33,11 +33,12 @@ services:
     hostname: worker
     restart: always
     environment:
-      - MQTT_HOST='192.16.1.40'
-      - MQTT_PORT=1883
+      - MQTT_HOST=mqtts://192.16.1.40
+      - MQTT_PORT=8883
       - MQTT_USER=user
       - MQTT_PASS=user
-      - MQTT_SENSORDATA_TOPIC=sensordata
+      - MQTT_SENSORDATA_TOPIC=/iot_etage/sensordata
+      - MQTT_INSTRUCTION_TOPIC=/iot_etage/instructions
       - ENV=prod
     depends_on:
       - 'mosquitto'
