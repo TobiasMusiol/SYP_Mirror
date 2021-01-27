@@ -20,6 +20,10 @@
                       <v-switch v-model="switch1" :label="`${switch1.toString() == 'true' ? 'Automatisch' : 'Manuell'}`"></v-switch>
                     </v-col>
                   </v-row>
+                  <v-row align="center">
+                    <v-col cols="6">Aktuelle Temparatur</v-col>
+                    <v-col cols="6">27,3 °C</v-col>
+                  </v-row>
                   <template v-if="switch1.toString() == 'false'">
                     <v-row align="center">
                       <v-col cols="6">Lüftergeschwindigkeit</v-col>
