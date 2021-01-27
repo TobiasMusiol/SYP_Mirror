@@ -24,6 +24,10 @@
                       >4000 <span class="font-weight-bold">Lumen</span>
                     </v-col>
                   </v-row>
+                  <v-row>
+                    <v-col cols="6">Threshhold</v-col>
+                    <v-col cols="6">1000</v-col>
+                  </v-row>
                 </v-container>
               </v-list-item-subtitle>
             </v-list-item-content>
@@ -33,7 +37,7 @@
             </v-list-item-avatar>
           </v-list-item>
           <v-card-actions class="justify-center">
-            <v-btn outlined rounded text> Button </v-btn>
+            <beleuchtungssteuerung-edit />
           </v-card-actions>
         </v-card>
       </v-col>
@@ -42,7 +46,9 @@
 </template>
 
 <script>
+import BeleuchtungssteuerungEdit from "../Modal/BeleuchtungssteuerungEdit";
 export default {
+  components: { BeleuchtungssteuerungEdit },
   name: "Beleuchtungssteuerung",
 };
 </script>

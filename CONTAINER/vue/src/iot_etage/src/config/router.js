@@ -51,14 +51,6 @@ const routes = [
     },
   },
   {
-    path: '/beleuchtungssteuerung/edit',
-    components: {
-      mainview: async () =>
-        await import('../components/Main/BeleuchtungssteuerungEdit.vue'),
-      footerview: Footer,
-    },
-  },
-  {
     path: '/markisolettensteuerung',
     components: {
       mainview: async () =>

@@ -33,7 +33,7 @@ public class AppList {
     Map.of(
       "name", "Raumstatus",
       "icon", "fa-info",
-      "url", "/roomstatus"
+      "url", "/raumstatus"
     )
   );
 }

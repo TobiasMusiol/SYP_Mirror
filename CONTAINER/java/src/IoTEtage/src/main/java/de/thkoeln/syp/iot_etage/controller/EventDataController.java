@@ -95,7 +95,7 @@ public class EventDataController {
       produces = MediaType.APPLICATION_JSON_VALUE 
     )
     @CrossOrigin
-    @PreAuthorize("hasAuthority('"+AppAuthority.Names.EDIT_EVENTS+"')")
+    //@PreAuthorize("hasAuthority('"+AppAuthority.Names.EDIT_EVENTS+"')")
     public ResponseEntity<List<EventDataDto>> createEvents(@RequestBody @NotEmpty(message = "Input movie list cannot be empty.")List<@Valid EventDataDto> eventDtoList) {
       
       List<EventDataDto> createdEvents = this.eventService.createEvents(eventDtoList);

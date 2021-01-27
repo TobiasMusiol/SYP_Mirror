@@ -71,7 +71,7 @@ public class SensorDataController {
       produces = MediaType.APPLICATION_JSON_VALUE
     )
     @CrossOrigin
-    @PreAuthorize("hasAuthority('"+AppAuthority.Names.EDIT_SENSORS+"')")
+    //@PreAuthorize("hasAuthority('"+AppAuthority.Names.EDIT_SENSORS+"')")
     public ResponseEntity<List<SensorDataDto>> insertSensorData(@RequestBody @NotEmpty(message = "Input dar nicht leer sein")  List<@Valid SensorDataDto> sensorDataDtos){
 
       List<SensorDataDto> createdSensorDataDtos = this.sensorService.insertSensorDatas(sensorDataDtos);

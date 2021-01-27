@@ -103,5 +103,23 @@ public class AuthController {
 
     return ResponseEntity.ok().body(AppList.appList);
   }
+
+  @PostMapping(
+    path="/renewtoken",
+    consumes=MediaType.APPLICATION_JSON_VALUE,
+    produces = MediaType.APPLICATION_JSON_VALUE 
+  )
+  @CrossOrigin
+  @PreAuthorize("isAuthenticated()")
+  public ResponseEntity<Map<String, Object>> renewToken(){
+
+    String token = this.authService.renewToken();
+
+    Map<String, Object> responseBody = new LinkedHashMap<>();
+    responseBody.put("status", Integer.valueOf(HttpStatus.CREATED.value()));
+    responseBody.put("user-token", token);
+
+    return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+  }
   
 }

@@ -63,6 +63,12 @@
       <artifactId>jjwt</artifactId>
       <version>0.9.1</version>
     </dependency>
+    <!-- MQTT -->
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-mqtt</artifactId>
+      <!--<version>5.4.3</version>-->
+    </dependency>
   </dependencies>
 
 

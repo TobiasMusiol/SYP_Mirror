@@ -9,6 +9,7 @@ const config = {
   headers: {
     'Content-Type': 'application/json',
   },
+  userTypes: { USER: 'USER', FM: 'FACILITY_MANAGER', OW: 'OFFICE_WORKER' },
 };
 
 export default config;
