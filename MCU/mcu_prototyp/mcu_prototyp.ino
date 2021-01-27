@@ -12,7 +12,8 @@
 DHT dht(DHT_PIN, DHT_TYPE);
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
-StaticJsonDocument<200> doc;
+StaticJsonDocument<200> docOut;
+StaticJsonDocument<200> docIn;
 
 char buf[200];
 byte mac[6];
@@ -63,14 +64,18 @@ void mqtt_connect()
 
 void receivedCallback(char* topic, byte* payload, unsigned int length)
 {
+  char payloadBuffer[length];
   Serial.print("Received [");
   Serial.print(topic);
   Serial.print("]: ");
   for (int i = 0; i < length; i++)
   {
     Serial.print((char)payload[i]);
+    payloadBuffer += ((char)payload[i]);
   }
   Serial.println("");
+  deserializeJson(docIn, payloadBuffer);
+  Serial.println(docIn["MCUID"]);
 }
 
 void setup()
@@ -141,11 +146,11 @@ void loop()
     float h = dht.readHumidity();
     float t = dht.readTemperature();
 
-    doc["uid"] = UID;
-    doc["sensorType"] = "TEMPERATURE";
-    doc["payload"] = t;
+    docOut["uid"] = UID;
+    docOut["sensorType"] = "TEMPERATURE";
+    docOut["payload"] = t;
 
-    serializeJson(doc, buf);
+    serializeJson(docOut, buf);
     client.publish(MQTT_PUB_TOPIC, buf, false);
     
     Serial.print("Published [");
@@ -153,10 +158,10 @@ void loop()
     Serial.print("]: ");
     Serial.println(buf);
 
-    doc["sensorType"] = "HUMIDITY";
-    doc["payload"] = h;
+    docOut["sensorType"] = "HUMIDITY";
+    docOut["payload"] = h;
 
-    serializeJson(doc, buf);
+    serializeJson(docOut, buf);
     client.publish(MQTT_PUB_TOPIC, buf, false);
 
     Serial.print("Published [");

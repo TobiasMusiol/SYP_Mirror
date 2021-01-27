@@ -21,7 +21,7 @@ public class AppList {
       "url", "/beleuchtungssteuerung"
     ),
     Map.of(
-      "name", "Markisolettenstuerung",
+      "name", "Markisolettensteuerung",
       "icon", "fa-arrows-alt-v",
       "url", "/markisolettensteuerung"
     ),
