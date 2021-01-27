@@ -14,16 +14,20 @@
               </v-list-item-title>
               <v-list-item-subtitle>
                 <v-container class="text-left">
-                  <v-row>
+                  <v-row align="center">
                     <v-col cols="6">Modus</v-col>
-                    <v-col cols="6">Automatisch</v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="6">Leuchkraft</v-col>
-                    <v-col cols="6"
-                      >4000 <span class="font-weight-bold">Lumen</span>
+                    <v-col cols="6">
+                      <v-switch v-model="switch1" :label="`${switch1.toString() == 'true' ? 'Automatisch' : 'Manuell'}`"></v-switch>
                     </v-col>
                   </v-row>
+                  <template v-if="switch1.toString() == 'false'">
+                    <v-row align="center">
+                      <v-col cols="6">Helligkeit</v-col>
+                      <v-col cols="6">
+                        <v-slider v-model="brightness" step="1" thumb-label ticks append-icon="mdi-lightbulb"></v-slider>
+                      </v-col>
+                    </v-row>
+                  </template>
                 </v-container>
               </v-list-item-subtitle>
             </v-list-item-content>
@@ -32,9 +36,6 @@
               <v-icon color="blue" x-large> fas fa-sun </v-icon>
             </v-list-item-avatar>
           </v-list-item>
-          <v-card-actions class="justify-center">
-            <v-btn outlined rounded text> Button </v-btn>
-          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
@@ -44,6 +45,12 @@
 <script>
 export default {
   name: "Beleuchtungssteuerung",
+  data () {
+    return {
+      switch1: true,
+      brightness: 0,
+    }
+  },
 };
 </script>
 
