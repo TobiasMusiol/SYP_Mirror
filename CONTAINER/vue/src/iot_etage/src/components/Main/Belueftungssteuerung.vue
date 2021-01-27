@@ -17,7 +17,7 @@
                   <v-row align="center">
                     <v-col cols="6">Modus</v-col>
                     <v-col cols="6">
-                      <v-switch v-model="switch1" :label="`${switch1.toString() == 'true' ? 'Automatisch' : 'Manuell'}`"></v-switch>
+                      <v-switch v-model="switch1" :label="`${switch1.toString() == 'true' ? 'Automatisch' : 'Manuell'}`" @change="changeMode"></v-switch>
                     </v-col>
                   </v-row>
                   <v-row align="center">
@@ -28,7 +28,7 @@
                     <v-row align="center">
                       <v-col cols="6">Lüftergeschwindigkeit</v-col>
                       <v-col cols="6">
-                        <v-slider v-model="speed" step="1" thumb-label ticks append-icon="mdi-fan"></v-slider>
+                        <v-slider v-model="speed" step="1" thumb-label ticks append-icon="mdi-fan" @mouseup="setSpeed"></v-slider>
                       </v-col>
                     </v-row>
                   </template>
@@ -36,7 +36,7 @@
                     <v-row align="center">
                       <v-col cols="6">Aktivierungsschwelle in Grad Celsius</v-col>
                       <v-col cols="6">
-                        <v-slider v-model="threshold" step="0.1" min="15" max="35" thumb-label ticks append-icon="mdi-thermometer"></v-slider>
+                        <v-slider v-model="threshold" step="0.1" min="15" max="35" thumb-label ticks append-icon="mdi-thermometer" @mouseup="setThreshold"></v-slider>
                       </v-col>
                     </v-row>
                   </template>
@@ -55,15 +55,74 @@
 </template>
 
 <script>
+
+import config from "../../config/config";
+
 export default {
   name: "Belueftungssteuerung",
   data () {
     return {
+      appName: 'air',
       switch1: true,
       speed: 0,
       threshold: 20,
     }
   },
+  methods: {
+    sendPostRequest(jsonObj) {
+      fetch(`${config.urls.backend.base}/${this.appName}`, {
+          method: "post",
+          headers: { ...config.headers },
+          body: JSON.stringify(jsonObj),
+        }).then((response) => {
+          if (response.status === 200) {
+            //TODO Richtigen Response auswerten
+            console.log('success');
+          } else {
+            this.$store.commit("toggleAlert", {
+                alertType: "info",
+                alertMessage: "Fehler beim Post Request",
+                showAlert: true,
+              });
+          }
+        })
+    },
+    setSpeed() {
+      console.log(`Setting speed to ${this.speed}`);
+      let json = {
+        'MCUID': 1003,
+        'action': 'setSpeed',
+        'payload': {
+          'speed': this.speed
+        }
+      };
+      this.sendPostRequest(json);
+    },
+    changeMode() {
+      console.log(`Changing mode to ${this.switch1 ? 'automatisch' : 'manuell'}`);
+      let targetMode = this.switch1 ? 'auto' : 'man';
+      let json = {
+        'MCUID': 1003,
+        'action': 'switchMode',
+        'payload': {
+          'targetMode': targetMode,
+          'threshold': this.threshold
+        }
+      };
+      this.sendPostRequest(json);
+    },
+    setThreshold() {
+      console.log(`Setting threshold to ${this.threshold}`);
+      let json = {
+        'MCUID': 1003,
+        'action': 'setThreshold',
+        'payload': {
+          'threshold': this.threshold
+        }
+      };
+      this.sendPostRequest(json);
+    }
+  }
 };
 </script>
 
