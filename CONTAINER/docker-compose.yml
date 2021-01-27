@@ -84,8 +84,6 @@ services:
     depends_on:
       - 'postgres'
       - 'mosquitto'
-    healthcheck:
-      test: 'curl -f http://localhost:8090 -k'
     ports:
       - '8090:8090'
       - '8091:8091'
