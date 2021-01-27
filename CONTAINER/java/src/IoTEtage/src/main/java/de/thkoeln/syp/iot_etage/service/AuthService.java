@@ -10,6 +10,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import de.thkoeln.syp.iot_etage.auth.UserPrincipal;
@@ -75,6 +77,15 @@ public class AuthService {
         HttpStatus.UNPROCESSABLE_ENTITY
       );
     }
+  }
+
+  public String renewToken(){
+    SecurityContext context = SecurityContextHolder.getContext();
+    Authentication authObj = context.getAuthentication();
+
+    UserPrincipal userPrincipal= (UserPrincipal) authObj.getPrincipal();
+    
+    return jwtTokenUtil.createToken(userPrincipal.getUser());
   }
 
   /*

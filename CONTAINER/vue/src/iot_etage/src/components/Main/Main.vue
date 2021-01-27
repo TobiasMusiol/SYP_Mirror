@@ -34,7 +34,6 @@
 
 <script>
 import config from "../../config/config";
-import helper, { isLoggedIn } from "../../config/helper";
 
 export default {
   name: "MainView",

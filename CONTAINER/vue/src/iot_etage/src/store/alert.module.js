@@ -36,7 +36,7 @@ export const alert = {
       return setTimeout(
         () =>
           commit('toggleAlert', {
-            alertType: 'info',
+            alertType: '',
             alertMessage: '',
             showAlert: false,
           }),

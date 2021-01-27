@@ -79,9 +79,12 @@ export default {
   },
 
   mounted() {
-    fetch(`${config.urls.backend}/${this.appName}`, {
+    fetch(`${config.urls.backend.base}/${this.appName}`, {
       methode: "get",
-      headers: { ...config.headers },
+      headers: {
+        ...config.headers,
+        "Authorization": localStorage.getItem("user-token"),
+      },
     }).then((response) => {
       if (response.status === 200) {
         response.json().then((data) => {

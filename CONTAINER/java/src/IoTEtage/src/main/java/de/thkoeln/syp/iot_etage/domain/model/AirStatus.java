@@ -1,7 +1,10 @@
 package de.thkoeln.syp.iot_etage.domain.model;
 
+import org.springframework.stereotype.Component;
+
 import de.thkoeln.syp.iot_etage.domain.helper.Modus;
 
+@Component
 public class AirStatus {
   private Modus modus;
   private int airThresholdValue;
