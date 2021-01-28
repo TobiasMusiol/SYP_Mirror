@@ -5,18 +5,16 @@ import de.thkoeln.syp.iot_etage.domain.model.LightStatus;
 
 public class LightStatusMapper {
   public static LightStatusDto convertLightStatusToLightStatusDto(LightStatus lightStatus){
+    LightStatusDto lightStatusDto = new LightStatusDto();
+    lightStatusDto.setState(lightStatus.getState());
 
-    return new LightStatusDto(
-      lightStatus.getModus(),
-      lightStatus.getLightThreshold()
-    );
+    return lightStatusDto;
   }
 
   public static LightStatus convertLightStatusDtoToToLightStatus(LightStatusDto lightStatusDto){
 
     LightStatus lightStatus = new LightStatus();
-    lightStatus.setModus(lightStatusDto.getModus());
-    lightStatus.setLightThreshold(lightStatusDto.getLightTreshold());
+    lightStatus.setState(lightStatusDto.getState());
 
     return lightStatus;
   }

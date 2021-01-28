@@ -2,32 +2,19 @@ package de.thkoeln.syp.iot_etage.domain.model;
 
 import org.springframework.stereotype.Component;
 
-import de.thkoeln.syp.iot_etage.domain.helper.Modus;
+import de.thkoeln.syp.iot_etage.domain.helper.State;
+
 
 @Component
 public class AirStatus {
-  private Modus modus;
-  private int airThresholdValue;
+  private State state;
 
-  public AirStatus(){
-    this.modus = Modus.NO_DATA;
-    this.airThresholdValue = 0;
+  public State getState() {
+    return state;
   }
 
-  public Modus getModus() {
-    return modus;
-  }
-
-  public void setModus(Modus modus) {
-    this.modus = modus;
-  }
-
-  public int getAirThresholdValue() {
-    return airThresholdValue;
-  }
-
-  public void setAirThresholdValue(int airThresholdValue) {
-    this.airThresholdValue = airThresholdValue;
+  public void setState(State state) {
+    this.state = state;
   }
   
 }

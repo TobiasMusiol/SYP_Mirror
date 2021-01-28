@@ -18,11 +18,6 @@ public class SensorService {
   @Autowired
   private SensorRepository repository;
 
-  // Konstructor
-  public Optional<SensorData> findById(long id) {
-    return repository.findById(id);
-  }
-
   // Methoden
   public List<SensorDataDto> findAll() {
     List<SensorDataDto> sensorDataDtos = new ArrayList<>();
@@ -36,15 +31,15 @@ public class SensorService {
     return sensorDataDtos;
   }
 
-  public boolean insertSensorData(SensorData sensorData) {
-
-    if (sensorData != null) {
-      repository.save(sensorData);
-      return true;
+  public SensorDataDto insertSensorData(SensorDataDto sensorDataDto) {
+    if (sensorDataDto!= null) {
+      SensorData sensorData = SensorDataMapper.convertSensorDataDtoToSensorData(sensorDataDto);
+      sensorData = repository.save(sensorData);
+      sensorDataDto = SensorDataMapper.convertSensorDataToSensorDataDto(sensorData);
+      return sensorDataDto;
     } else {
-      return false;
+      return null;
     }
-
   }
 
   public List<SensorDataDto> insertSensorDatas(List<SensorDataDto> sensorDataDtoList) {

@@ -6,6 +6,8 @@ import javax.validation.constraints.*;
 public class EventDataDto {
 
     private long id;
+    private int uid;
+    private SensorType sensorType;
     @NotEmpty(message = "Aktion darf nicht leer sein.")
     private String action;
 
@@ -93,5 +95,21 @@ public class EventDataDto {
   @Override
   public String toString() {
     return "{" + " id='" + getId() + "'" + ", action='" + getAction() + "'" + ", oldState='" + getOldState() + "'" + ", newState='" + getNewState() + "'" + ", trigger='" + getTrigger() + "'" + ", timestamp='" + getTimestamp() + "'" + "}";
+  }
+
+  public int getUid() {
+    return uid;
+  }
+
+  public void setUid(int uid) {
+    this.uid = uid;
+  }
+
+  public SensorType getSensorType() {
+    return sensorType;
+  }
+
+  public void setSensorType(SensorType sensorType) {
+    this.sensorType = sensorType;
   }
 }

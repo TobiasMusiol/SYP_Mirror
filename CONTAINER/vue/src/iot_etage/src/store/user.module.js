@@ -77,7 +77,7 @@ export const user = {
               if (response.status === 200) {
                 const data = await response.json();
                 this.commit('authenticateUser', {
-                  user_token: data,
+                  data,
                 });
               }
             });

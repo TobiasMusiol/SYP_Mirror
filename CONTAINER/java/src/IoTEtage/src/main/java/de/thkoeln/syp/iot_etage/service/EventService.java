@@ -1,7 +1,6 @@
 package de.thkoeln.syp.iot_etage.service;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import de.thkoeln.syp.iot_etage.controller.dto.EventDataDto;
 import de.thkoeln.syp.iot_etage.domain.entity.EventData;
+import de.thkoeln.syp.iot_etage.domain.helper.State;
+import de.thkoeln.syp.iot_etage.domain.model.LightStatus;
 import de.thkoeln.syp.iot_etage.domain.repository.EventRepository;
 import de.thkoeln.syp.iot_etage.utils.EventDataMapper;
 
@@ -25,11 +26,16 @@ public class EventService {
     private static final Logger logger = LoggerFactory.getLogger(EventService.class);
 
     private final EventRepository eventRepository;
+    private final LightStatus lightStatus;
 
+    //Konstruktor
     @Autowired
-    public EventService(EventRepository eventRepository) {
+    public EventService(EventRepository eventRepository, LightStatus lightStatus) {
         this.eventRepository = eventRepository;
+        this.lightStatus = lightStatus;
     }
+
+    //Methoden
 
     /**
      * Alle Events aus DB holen
@@ -72,24 +78,33 @@ public class EventService {
       newestEventDataDto = EventDataMapper.convertEventDataToEventDataDto(newestEvenData);
       return newestEventDataDto;
     }
+
     /**
-     * Events returnen, die in einem bestimmeten Zeitinterval leigen
+     * einen neuen Event erzeugen
+     * @param EventDataDto
      * 
-     * @param newEvent
-     * @return
+     * @return EventDataDto
      */
-    public List<EventDataDto> getEvents(Date start, Date end) {
-        List<EventDataDto> eventDataDtos = new ArrayList<EventDataDto>();
+    public EventDataDto createEvent(EventDataDto newEventDataDto){
+      EventData newEventData = EventDataMapper.convertEventDataDtoToEventData(newEventDataDto);
+      newEventData = this.eventRepository.save(newEventData);      
+      newEventDataDto = EventDataMapper.convertEventDataToEventDataDto(newEventData);
 
-        this.eventRepository.findAll().forEach(event -> {
-            eventDataDtos.add(EventDataMapper.convertEventDataToEventDataDto(event));
-        });
+      String trigger = newEventData.getTrigger();
 
-        return eventDataDtos;
+      switch (trigger){
+        case "light":
+          this.lightStatus.setState(State.COMPLETED);
+          break;
+        default:
+          break;
+      }
+
+      return newEventDataDto;
     }
 
     /**
-     * Neuen Event erzeugen
+     * Neuen Events erzeugen
      * 
      * @param: event - neues Event
      * 

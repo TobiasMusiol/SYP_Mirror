@@ -1,30 +1,23 @@
 package de.thkoeln.syp.iot_etage.domain.model;
 
-import de.thkoeln.syp.iot_etage.domain.helper.Modus;
+import org.springframework.stereotype.Component;
 
+import de.thkoeln.syp.iot_etage.domain.helper.State;
+
+@Component
 public class LightStatus {
-  private Modus modus;
-  private int lightThreshold;
+  private State state;
 
   public LightStatus(){
-    this.modus = Modus.NO_DATA;
-    this.lightThreshold = 0;
+    this.state = State.NO_DATA;
   }
 
-  public Modus getModus() {
-    return modus;
+  public State getState() {
+    return state;
   }
 
-  public void setModus(Modus modus) {
-    this.modus = modus;
+  public void setState(State state) {
+    this.state = state;
   }
 
-  public int getLightThreshold() {
-    return lightThreshold;
-  }
-
-  public void setLightThreshold(int lightThreshold) {
-    this.lightThreshold = lightThreshold;
-  }
-  
 }

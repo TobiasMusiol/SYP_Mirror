@@ -97,4 +97,4 @@ user: Kirill
 ####
 GET http://localhost:8090/air HTTP/1.1
 Content-Type: application/json
-Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBZG1pbiIsImF1dGgiOnsiYXV0aG9yaXR5IjoiQURNSU4ifSwiaWF0IjoxNjExNjA4NjUyLCJleHAiOjE2MTE2MTIyNTJ9.wR3dj9VQrdTFJb6jOCWKWk-oPhpl26tPo_P_BwKrzII
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBZG1pbiIsImF1dGgiOnsiYXV0aG9yaXR5IjoiQURNSU4ifSwiaWF0IjoxNjExNzczMzMwLCJleHAiOjE2MTE3NzY5MzB9.4JO18sw2AR25idjd2FCDBNt_KZz0k-t10RkL9D658tA

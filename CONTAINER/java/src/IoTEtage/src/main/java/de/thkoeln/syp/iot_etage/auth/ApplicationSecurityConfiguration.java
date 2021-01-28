@@ -1,4 +1,4 @@
-package de.thkoeln.syp.iot_etage;
+package de.thkoeln.syp.iot_etage.auth;
 
 import javax.servlet.http.HttpServletResponse;
 

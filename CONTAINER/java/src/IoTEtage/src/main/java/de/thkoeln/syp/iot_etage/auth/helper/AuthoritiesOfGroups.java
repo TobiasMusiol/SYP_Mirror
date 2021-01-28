@@ -23,7 +23,7 @@ public class AuthoritiesOfGroups {
     USER = new AppAuthority[]{
       AppAuthority.READ_AIR,
       AppAuthority.READ_AWNING,
-      AppAuthority.READ_LIGHTCONTROLS,
+      AppAuthority.READ_LIGHT,
       AppAuthority.READ_ROOM_STATUS,
       AppAuthority.READ_EVENTS,
       AppAuthority.READ_SENSORS
@@ -31,12 +31,12 @@ public class AuthoritiesOfGroups {
     MCU = new AppAuthority[]{
       AppAuthority.EDIT_AIR,
       AppAuthority.EDIT_AWNING,
-      AppAuthority.EDIT_LIGHTCONTROLS,
+      AppAuthority.EDIT_LIGHT,
       AppAuthority.EDIT_EVENTS,
       AppAuthority.EDIT_SENSORS
     };
     OFFICE_WORKER_PERMISSIONS = new AppAuthority[]{
-      AppAuthority.READ_LIGHTCONTROLS,
+      AppAuthority.READ_LIGHT,
       AppAuthority.READ_AIR,
       AppAuthority.READ_AWNING,
       AppAuthority.READ_ROOM_STATUS,
@@ -49,8 +49,8 @@ public class AuthoritiesOfGroups {
       AppAuthority.EDIT_AIR,
       AppAuthority.READ_AWNING,
       AppAuthority.EDIT_AWNING,
-      AppAuthority.READ_LIGHTCONTROLS,
-      AppAuthority.EDIT_LIGHTCONTROLS,
+      AppAuthority.READ_LIGHT,
+      AppAuthority.EDIT_LIGHT,
       AppAuthority.READ_ROOM_STATUS,
       AppAuthority.EDIT_ROOM_STATUS_FM,
       AppAuthority.READ_EVENTS,

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -46,7 +48,7 @@ public class AuthController {
   )
   @CrossOrigin
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public ResponseEntity<Map<String, Object>> checkUserCredentials(@RequestBody UserDto userDto) {
+  public ResponseEntity<Map<String, Object>> checkUserCredentials(@Valid @RequestBody  UserDto userDto) {
     String token = this.authService.loginUser(userDto);
 
     Map<String, Object> responseBody = new LinkedHashMap<>();

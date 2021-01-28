@@ -17,7 +17,14 @@
                   <v-row align="center">
                     <v-col cols="6">Modus</v-col>
                     <v-col cols="6">
-                      <v-switch v-model="switch1" :label="`${switch1.toString() == 'true' ? 'Automatisch' : 'Manuell'}`"></v-switch>
+                      <v-switch
+                        v-model="switch1"
+                        :label="`${
+                          switch1.toString() == 'true'
+                            ? 'Automatisch'
+                            : 'Manuell'
+                        }`"
+                      ></v-switch>
                     </v-col>
                   </v-row>
                   <v-row align="center">
@@ -28,15 +35,31 @@
                     <v-row align="center">
                       <v-col cols="6">Lüftergeschwindigkeit</v-col>
                       <v-col cols="6">
-                        <v-slider v-model="speed" step="1" thumb-label ticks append-icon="mdi-fan"></v-slider>
+                        <v-slider
+                          v-model="speed"
+                          step="1"
+                          thumb-label
+                          ticks
+                          append-icon="mdi-fan"
+                        ></v-slider>
                       </v-col>
                     </v-row>
                   </template>
                   <template v-if="switch1.toString() == 'true'">
                     <v-row align="center">
-                      <v-col cols="6">Aktivierungsschwelle in Grad Celsius</v-col>
+                      <v-col cols="6"
+                        >Aktivierungsschwelle in Grad Celsius</v-col
+                      >
                       <v-col cols="6">
-                        <v-slider v-model="threshold" step="0.1" min="15" max="35" thumb-label ticks append-icon="mdi-thermometer"></v-slider>
+                        <v-slider
+                          v-model="threshold"
+                          step="0.1"
+                          min="15"
+                          max="35"
+                          thumb-label
+                          ticks
+                          append-icon="mdi-thermometer"
+                        ></v-slider>
                       </v-col>
                     </v-row>
                   </template>
@@ -57,12 +80,18 @@
 <script>
 export default {
   name: "Belueftungssteuerung",
-  data () {
+  data() {
     return {
+      appName: "air",
       switch1: true,
       speed: 0,
       threshold: 20,
-    }
+    };
+  },
+  computed: {
+    usertype: function () {
+      return this.$store.state.usertype;
+    },
   },
 };
 </script>

@@ -35,23 +35,6 @@ public class SensorDataController {
     }
     
     //Methods 
-    @GetMapping(
-      value="/{id}",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @CrossOrigin
-    @PreAuthorize("hasAuthority('"+AppAuthority.Names.READ_SENSORS+"')")
-    public ResponseEntity<?> getSensorDataById(@PathVariable long id){
-
-      Optional<SensorData> foundObject = sensorService.findById(id);
-      if(foundObject.isPresent()) {
-          SensorData sensorData = foundObject.get();
-          return ResponseEntity.ok(sensorData);
-      }
-      return new ResponseEntity<>("No Sernsordata with ID: " + id,HttpStatus.OK);
-  }
-
     @CrossOrigin
     @GetMapping(
       consumes = MediaType.APPLICATION_JSON_VALUE,

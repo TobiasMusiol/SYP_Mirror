@@ -5,9 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import de.thkoeln.syp.iot_etage.MqttConfiguration.MyGateway;
 import de.thkoeln.syp.iot_etage.domain.model.AirStatus;
 import de.thkoeln.syp.iot_etage.domain.repository.EventRepository;
+import de.thkoeln.syp.iot_etage.mqtt.MqttConfiguration.InstructionTopicGateway;
 
 @Service
 public class AirService {
@@ -15,18 +15,18 @@ public class AirService {
 
   private final EventRepository EventRepository;
   private final AirStatus airStatus;
-  private final MyGateway myGateway;
+  private final InstructionTopicGateway instructionTopicGateway;
 
   // Konstruktoren
   @Autowired
   public AirService(
     EventRepository eventRepository,
     AirStatus airStatus,
-    MyGateway myGateway
+    InstructionTopicGateway instructionTopicGateway
   ){
     this.EventRepository = eventRepository;
     this.airStatus = airStatus;
-    this.myGateway = myGateway;
+    this.instructionTopicGateway = instructionTopicGateway;
   }
 
   /**
@@ -34,7 +34,8 @@ public class AirService {
    */
  
   public void testMqtt(){
-    this.myGateway.sendToMqtt("Haha Test");
+    
+    this.instructionTopicGateway.sendToMqtt("Haha Test");
   }
   
 

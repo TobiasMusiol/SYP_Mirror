@@ -25,6 +25,8 @@ public class SensorDataDto {
     this.timestamp = timestamp;
   }
 
+  public SensorDataDto(){}
+
   public long getId() {
     return this.id;
   }
@@ -52,6 +54,22 @@ public class SensorDataDto {
   @Override
   public String toString() {
     return "{" + " id='" + getId() + "'" + ", sensorType='" + getSensorType() + "'" + ", payload='" + getPayload() + "'" + "}";
+  }
+
+  public long getUid() {
+    return uid;
+  }
+
+  public void setUid(long uid) {
+    this.uid = uid;
+  }
+
+  public Date getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(Date timestamp) {
+    this.timestamp = timestamp;
   }
 
 

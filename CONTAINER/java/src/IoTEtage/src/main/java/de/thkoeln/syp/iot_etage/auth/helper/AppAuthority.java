@@ -2,8 +2,8 @@ package de.thkoeln.syp.iot_etage.auth.helper;
 
 public enum AppAuthority {
   // Beleuchtungssteuerung
-  READ_LIGHTCONTROLS("READ_LIGHTCONTROLS"),
-  EDIT_LIGHTCONTROLS("EDIT_LIGHTCONTROLS"),
+  READ_LIGHT("READ_LIGHT"),
+  EDIT_LIGHT("EDIT_LIGHT"),
 
   //Markisolettensteuerung
   READ_AWNING("READ_AWNING"),
@@ -31,8 +31,8 @@ public enum AppAuthority {
   private String permissionValue;
 
   public class Names{
-    public static final String READ_LIGHTCONTROLS = "READ_LIGHTCONTROLS";
-    public static final String EDIT_LIGHTCONTROLS = "EDIT_LIGHTCONTROLS";
+    public static final String READ_LIGHT= "READ_LIGHT";
+    public static final String EDIT_LIGHT= "EDIT_LIGHT";
 
     public static final String READ_AWNING = "READ_AWNING";
     public static final String EDIT_AWNING = "EDIT_AWNING";

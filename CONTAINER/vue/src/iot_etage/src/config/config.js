@@ -9,7 +9,18 @@ const config = {
   headers: {
     'Content-Type': 'application/json',
   },
-  userTypes: { USER: 'USER', FM: 'FACILITY_MANAGER', OW: 'OFFICE_WORKER' },
+  userTypes: {
+    USER: 'USER',
+    FM: 'FACILITY_MANAGER',
+    OW: 'OFFICE_WORKER',
+    ADMIN: 'ADMIN',
+  },
+  sensorTypes: {
+    light: {
+      mcuid: 1001,
+      sensorType: 'light',
+    },
+  },
 };
 
 export default config;
