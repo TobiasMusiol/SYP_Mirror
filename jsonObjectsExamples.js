@@ -39,7 +39,7 @@ let json4 = {
 	'MCUID': 1002,
 	'action': 'toggle',
 	'payload': {
-
+		'direction' : 'up'
 	}
 };
 
