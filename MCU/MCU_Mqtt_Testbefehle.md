@@ -5,6 +5,8 @@ Starten von Mosquitto in der Docker Shell:
 Zm testen muss der Port 1883 in der "mosquitto.conf" definiert sein: 
 listener 1883
 
+Im Microcrontroller muss der Port 8884 benutzt werden.
+
 SENSORDATEN MITHÖREN:
 
     mosquitto_sub -h localhost -p 1883 -u admin -P admin -t /iot_etage/sensordata
