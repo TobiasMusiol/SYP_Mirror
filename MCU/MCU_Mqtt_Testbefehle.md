@@ -38,8 +38,6 @@ BEFEHLE SENDEN:
             brigthness:
                 0 bis 100 :  Prozentualler Wert der Lichtstärke
             
-            
-
 
     Markisensteuerung:
     Startet im Manellen Modus
@@ -65,10 +63,63 @@ BEFEHLE SENDEN:
                 manu : Manueller Modus
 
             threshold:
-                0 bis 100 : Schwellwet der angibt, ab wie viel Prozent des PWM inputs 
+                0 bis 100 : Schwellwert der angibt, ab wie viel Prozent des PWM inputs 
                             des Lichtsensors die Markise hoch oder runter fährt. 
 
             direction:
                 up : Markise hochfahren
                 down : Markise herunterfahren
+
+
+    Belüftungssteuerung:
+    Startet im manuellen Modus
+
+        Zu Automatik Modus wechseln und Threshold einstellen:
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1003,\"action\": \"switchMode\",\"payload\": {\"targetMode\": \"auto\",\"threshold\": 500}}"
+
+        Zu Manuellen Modus wechseln:
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1003,\"action\": \"switchMode\",\"payload\": {\"targetMode\": \"manu\"}}"
+
+        Lüftergeschwindigkeit einstellen:
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1003,\"action\":\"setSpeed\",\"payload\": {\"speed\": 100}}"
+
+        Threshold einstellen:
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1003,\"action\":\"setThreshold\",\"payload\": {\"threshold\": 500}}"
+
+        Variablen erklärt:
+
+            targetMode:
+                auto : Automatik Modus
+                manu : Manueller Modus
+
+            threshold:
+                Ein PPM Wert zwischen 0 und  10000 : CO2 Werte über 500PPM gelten als ungesund. 
+
+            speed:
+                0 bis 100 : Stellt die Geschwindigkeit des Lüfter auf einen Prozentuallen Wert von 0 bis 100
+
+
+
+    Raumstatus:
+    Startet mit dem Status 'free'
+
+        Setzte Status free:
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1004, \"action\": \"setState\",\"payload\": {\"state\": \"free\"}}"
+
+        Setze Status occupied:
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1004, \"action\": \"setState\",\"payload\": {\"state\": \"occupied\"}}"
+
+        Setze Status cleaning:
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1004, \"action\": \"setState\",\"payload\": {\"state\": \"cleaning\"}}"
+
+        Variablen erklärt:
+
+            state:
+                free : Der Raum ist Frei und kann genutzt werden.
+                occupied : Der Raum ist belegt und kann nicht genutzt werden.
+                cleaning : Der Raum befindet sich gerade in der Reinigung. (Ähnlich wie im Kino)
+
+
+            
+
 
