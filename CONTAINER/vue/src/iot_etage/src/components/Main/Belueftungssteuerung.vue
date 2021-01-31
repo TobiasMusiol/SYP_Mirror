@@ -24,12 +24,13 @@
                             ? 'Automatisch'
                             : 'Manuell'
                         }`"
+                        @change="changeMode"
                       ></v-switch>
                     </v-col>
                   </v-row>
                   <v-row align="center">
                     <v-col cols="6">Aktuelle Temparatur</v-col>
-                    <v-col cols="6">27,3 °C</v-col>
+                    <v-col cols="6">{{ sensorValue }} °C</v-col>
                   </v-row>
                   <template v-if="switch1.toString() == 'false'">
                     <v-row align="center">
@@ -41,6 +42,7 @@
                           thumb-label
                           ticks
                           append-icon="mdi-fan"
+                          @mouseup="setSpeed"
                         ></v-slider>
                       </v-col>
                     </v-row>
@@ -59,6 +61,7 @@
                           thumb-label
                           ticks
                           append-icon="mdi-thermometer"
+                          @mouseup="setThreshold"
                         ></v-slider>
                       </v-col>
                     </v-row>
@@ -78,6 +81,8 @@
 </template>
 
 <script>
+import config from "../../config/config";
+
 export default {
   name: "Belueftungssteuerung",
   data() {
@@ -86,11 +91,111 @@ export default {
       switch1: true,
       speed: 0,
       threshold: 20,
+      sensorValue: 0,
     };
+  },
+  mounted: async function () {
+    try {
+      const response = await fetch(
+        `${config.urls.backend.base}/${this.appName}`,
+        {
+          method: "get",
+          headers: {
+            ...config.headers,
+            "Authorization": localStorage.getItem("user-token"),
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        const data = await response.json();
+        console.log(data);
+        this.sensorValue = data.sensorValue;
+      } else {
+        this.$store.commit("toggleAlert", {
+          alertType: "info",
+          alertMessage: "Fehler beim Post Request",
+          showAlert: true,
+        });
+      }
+    } catch (e) {
+      this.$store.commit("toggleAlert", {
+        alertType: "error",
+        alertMessage: "Server nicht erreicht",
+        showAlert: true,
+      });
+    }
   },
   computed: {
     usertype: function () {
       return this.$store.state.usertype;
+    },
+  },
+  methods: {
+    sendPostRequest(jsonObj) {
+      fetch(`${config.urls.backend.base}/${this.appName}`, {
+        method: "post",
+        headers: {
+          ...config.headers,
+          "Authorization": localStorage.getItem("user-token"),
+        },
+        body: JSON.stringify(jsonObj),
+      }).then(async (response) => {
+        if (response.status === 200) {
+          //TODO Richtigen Response auswerten
+          console.log("success");
+          const data = await response.json();
+
+          this.$store.commit("toggleAlert", {
+            alertType: "info",
+            alertMessage: data.message,
+            showAlert: true,
+          });
+        } else {
+          this.$store.commit("toggleAlert", {
+            alertType: "info",
+            alertMessage: "Fehler beim Post Request",
+            showAlert: true,
+          });
+        }
+      });
+    },
+    setSpeed() {
+      console.log(`Setting speed to ${this.speed}`);
+      let json = {
+        "MCUID": 1003,
+        "action": "setSpeed",
+        "payload": {
+          "speed": this.speed,
+        },
+      };
+      this.sendPostRequest(json);
+    },
+    changeMode() {
+      console.log(
+        `Changing mode to ${this.switch1 ? "automatisch" : "manuell"}`
+      );
+      let targetMode = this.switch1 ? "auto" : "man";
+      let json = {
+        "MCUID": 1003,
+        "action": "switchMode",
+        "payload": {
+          "targetMode": targetMode,
+          "threshold": this.threshold,
+        },
+      };
+      this.sendPostRequest(json);
+    },
+    setThreshold() {
+      console.log(`Setting threshold to ${this.threshold}`);
+      let json = {
+        "MCUID": 1003,
+        "action": "setThreshold",
+        "payload": {
+          "threshold": this.threshold,
+        },
+      };
+      this.sendPostRequest(json);
     },
   },
 };

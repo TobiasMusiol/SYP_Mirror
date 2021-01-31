@@ -3,12 +3,13 @@ package de.thkoeln.syp.iot_etage.controller.dto;
 import java.util.Map;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 public class InstructionDto {
   private int mcuid;
   @NotEmpty
   private String action;
-  @NotEmpty
+  @NotNull
   private Map<String, Object> payload;
 
   public int getMcuid() {

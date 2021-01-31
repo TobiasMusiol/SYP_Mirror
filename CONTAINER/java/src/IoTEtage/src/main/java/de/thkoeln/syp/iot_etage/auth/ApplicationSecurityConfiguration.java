@@ -71,8 +71,8 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
 
     http
       .authorizeRequests()
-      .antMatchers(HttpMethod.POST, "/events").hasIpAddress("192.16.1.20")
-      .antMatchers(HttpMethod.POST, "/sensors").hasIpAddress("192.16.1.20")
+      // .antMatchers(HttpMethod.POST, "/events").hasIpAddress("192.16.1.20")
+      // .antMatchers(HttpMethod.POST, "/sensors").hasIpAddress("192.16.1.20")
       .antMatchers("/auth/**").permitAll()
       .anyRequest().authenticated();
     

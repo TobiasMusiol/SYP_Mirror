@@ -1,6 +1,5 @@
 package de.thkoeln.syp.iot_etage.controller;
 
-import de.thkoeln.syp.iot_etage.domain.entity.SensorData;
 import de.thkoeln.syp.iot_etage.service.SensorService;
 import de.thkoeln.syp.iot_etage.auth.helper.AppAuthority;
 import de.thkoeln.syp.iot_etage.controller.dto.SensorDataDto;
@@ -48,6 +47,7 @@ public class SensorDataController {
       return ResponseEntity.ok(sensorDataDtoList);
     }
 
+    /*
     @PostMapping(
       value="",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -61,4 +61,5 @@ public class SensorDataController {
 
       return ResponseEntity.status(HttpStatus.CREATED).body(createdSensorDataDtos);
     }
+    */
 }

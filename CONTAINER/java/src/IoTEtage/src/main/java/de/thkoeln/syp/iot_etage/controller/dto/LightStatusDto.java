@@ -1,8 +1,6 @@
 package de.thkoeln.syp.iot_etage.controller.dto;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
-
 import de.thkoeln.syp.iot_etage.domain.helper.State;
 
 
@@ -10,13 +8,13 @@ public class LightStatusDto {
   @NotNull
   private State state;
   private int brightness;
-  private int sensorValue;
+  private String sensorValue;
 
   // Constructors
   public LightStatusDto(
     State state,
     int brightnes,
-    int sensorValue
+    String sensorValue
   ){
     this.state = state;
     this.brightness = brightnes;
@@ -41,11 +39,11 @@ public class LightStatusDto {
     this.brightness = brightness;
   }
 
-  public int getSensorValue() {
+  public String getSensorValue() {
     return sensorValue;
   }
 
-  public void setSensorValue(int sensorValue) {
+  public void setSensorValue(String sensorValue) {
     this.sensorValue = sensorValue;
   }
   

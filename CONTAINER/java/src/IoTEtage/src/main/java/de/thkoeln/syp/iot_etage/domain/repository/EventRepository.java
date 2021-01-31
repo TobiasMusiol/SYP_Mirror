@@ -10,5 +10,5 @@ import de.thkoeln.syp.iot_etage.domain.entity.EventData;
 // @RepositoryRestResource(exported = false)
 public interface EventRepository extends JpaRepository<EventData, Long> {
 
-  EventData findTopByOrderByTimestampDesc();
+  public EventData findTopByTriggerOrderByTimestampDesc(String trigger);
 }

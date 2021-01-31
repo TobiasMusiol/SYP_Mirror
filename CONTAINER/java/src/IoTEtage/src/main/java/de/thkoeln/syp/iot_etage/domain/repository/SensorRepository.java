@@ -10,5 +10,5 @@ import java.util.List;
 public interface SensorRepository extends CrudRepository<SensorData,Long> {
     public List<SensorData> findAllByOrderByTimestampDesc();
 
-    public SensorData findTopBySensorTypeOrderByTimestamp(String sensorType);
+    public SensorData findTopBySensorTypeOrderByTimestampDesc(String sensorType);
 }

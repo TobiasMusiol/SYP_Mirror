@@ -77,7 +77,7 @@ export const user = {
               if (response.status === 200) {
                 const data = await response.json();
                 this.commit('authenticateUser', {
-                  data,
+                  ...data,
                 });
               }
             });
@@ -120,9 +120,9 @@ export const user = {
       localStorage.removeItem('user-token-exp');
       state.username = null;
       state.usertype = null;
-      state.userTokenRenewTimeOut = null;
       state.apps = null;
       state.isAuthenticated = false;
+      localStorage.removeItem('vuex');
     },
   },
   actions: {},

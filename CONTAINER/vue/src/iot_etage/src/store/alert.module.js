@@ -19,7 +19,7 @@ export const alert = {
         }
         state.alertType = alertType;
         state.alertMessage = alertMessage;
-        state.alertTimer = this.dispatch('toggleAlert5000', {});
+        this.dispatch('toggleAlert5000', {});
         state.displayAlert = true;
       } else {
         clearTimeout(state.alertTimer);
@@ -32,8 +32,8 @@ export const alert = {
   },
 
   actions: {
-    toggleAlert5000({ commit }) {
-      return setTimeout(
+    async toggleAlert5000({ commit, state }) {
+      state.alertTimer = await setTimeout(
         () =>
           commit('toggleAlert', {
             alertType: '',

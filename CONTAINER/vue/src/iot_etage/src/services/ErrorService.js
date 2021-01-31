@@ -22,7 +22,7 @@ export default class ErrorService {
       console.log(error);
     }
     // Send Error to Log Engine e.g LogRocket
-    ErrorService.logRocketLogEngine(error);
+    //ErrorService.logRocketLogEngine(error);
   }
 
   static initHandler() {

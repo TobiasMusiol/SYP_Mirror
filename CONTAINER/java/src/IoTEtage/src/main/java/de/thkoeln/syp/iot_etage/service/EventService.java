@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import de.thkoeln.syp.iot_etage.controller.dto.EventDataDto;
 import de.thkoeln.syp.iot_etage.domain.entity.EventData;
 import de.thkoeln.syp.iot_etage.domain.helper.State;
+import de.thkoeln.syp.iot_etage.domain.model.AwningStatus;
 import de.thkoeln.syp.iot_etage.domain.model.LightStatus;
 import de.thkoeln.syp.iot_etage.domain.repository.EventRepository;
 import de.thkoeln.syp.iot_etage.utils.EventDataMapper;
@@ -26,13 +27,19 @@ public class EventService {
     private static final Logger logger = LoggerFactory.getLogger(EventService.class);
 
     private final EventRepository eventRepository;
-    private final LightStatus lightStatus;
 
+    private final LightStatus lightStatus;
+    private final AwningStatus awningStatus;
     //Konstruktor
     @Autowired
-    public EventService(EventRepository eventRepository, LightStatus lightStatus) {
+    public EventService(
+      EventRepository eventRepository, 
+      LightStatus lightStatus,
+      AwningStatus awningStatus
+    ) {
         this.eventRepository = eventRepository;
         this.lightStatus = lightStatus;
+        this.awningStatus = awningStatus;
     }
 
     //Methoden
@@ -72,13 +79,6 @@ public class EventService {
         return eventDataDto;
     }
 
-    public EventDataDto getNewestEvent(){
-      EventDataDto newestEventDataDto= null;
-      EventData newestEvenData = this.eventRepository.findTopByOrderByTimestampDesc();
-      newestEventDataDto = EventDataMapper.convertEventDataToEventDataDto(newestEvenData);
-      return newestEventDataDto;
-    }
-
     /**
      * einen neuen Event erzeugen
      * @param EventDataDto
@@ -93,9 +93,11 @@ public class EventService {
       String trigger = newEventData.getTrigger();
 
       switch (trigger){
-        case "light":
+        case "LIGHT_INSIDE":
           this.lightStatus.setState(State.COMPLETED);
           break;
+        case "LIGHT_OUTSIDE":
+          this.awningStatus.setState(State.COMPLETED);
         default:
           break;
       }

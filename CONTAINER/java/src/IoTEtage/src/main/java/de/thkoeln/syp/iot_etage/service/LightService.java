@@ -1,6 +1,5 @@
 package de.thkoeln.syp.iot_etage.service;
 
-import java.util.Random;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,12 +11,13 @@ import org.springframework.stereotype.Service;
 
 import de.thkoeln.syp.iot_etage.controller.dto.InstructionDto;
 import de.thkoeln.syp.iot_etage.controller.dto.LightStatusDto;
+import de.thkoeln.syp.iot_etage.domain.entity.EventData;
+import de.thkoeln.syp.iot_etage.domain.entity.SensorData;
 import de.thkoeln.syp.iot_etage.domain.helper.State;
 import de.thkoeln.syp.iot_etage.domain.model.LightStatus;
 import de.thkoeln.syp.iot_etage.domain.repository.EventRepository;
 import de.thkoeln.syp.iot_etage.domain.repository.SensorRepository;
 import de.thkoeln.syp.iot_etage.mqtt.MqttConfiguration.InstructionTopicGateway;
-import de.thkoeln.syp.iot_etage.utils.LightStatusMapper;
 
 /**
  * Service für Beleuchtungssteueurng
@@ -28,7 +28,7 @@ public class LightService {
   private static final Logger logger = LoggerFactory.getLogger(LightService.class);
 
   private final int mcuid = 1001;
-  private final String sensorType = "Light";
+  private final String sensorType = "LIGHT_INSIDE";
 
   @Autowired
   private LightStatus lightStatus;
@@ -39,31 +39,41 @@ public class LightService {
   @Autowired
   private SensorRepository sensorRepository;
 
+
+  //Konstruktoren
   public LightService() {}
 
+
   // Methods
-  /**
-   * den aktuellen Zustand lesen
-   */
-  public LightStatusDto getCurrentLightState() {
+  public LightStatusDto getStatus(){
+    LightStatusDto lightStatusDto = new LightStatusDto();
 
-    return LightStatusMapper.convertLightStatusToLightStatusDto(this.lightStatus);
-  }
+    EventData eventData = this.eventRepository.findTopByTriggerOrderByTimestampDesc(this.sensorType);
+    if (eventData == null){
+      lightStatusDto.setState(State.NO_DATA);
+    }
+    else{
+      lightStatusDto.setState(this.lightStatus.getState());
+    }
 
-  /**
-   * Beleuchtungssteuerung Zustand initialisieren -> wird nur vom MC ausgerufen
-   */
-  public LightStatusDto initLightState(LightStatusDto lightStatusDto) {
+    SensorData sensorData = this.sensorRepository.findTopBySensorTypeOrderByTimestampDesc(this.sensorType); 
+    if(sensorData == null){
+      lightStatusDto.setSensorValue("0");
+    }
+    else {
+      lightStatusDto.setSensorValue(sensorData.getPayload());
+    }
 
-    return LightStatusMapper.convertLightStatusToLightStatusDto(this.lightStatus);
-  }
+    return lightStatusDto;
+  }  
 
   public boolean changeStatus(InstructionDto instructionDto) {
 
-    boolean sent = false;
     instructionDto.setMcuid(this.mcuid);
+
     ObjectMapper objMapper = new ObjectMapper();
     String jsonString;
+
     try {
       jsonString = objMapper.writeValueAsString(instructionDto);
     } catch (JsonProcessingException e) {
@@ -71,9 +81,9 @@ public class LightService {
       e.printStackTrace();
       return false;
     }
+
     this.instructionTopicGateways.sendToMqtt(jsonString);
-    sent = true;
     
-    return sent;
+    return true;
   }
 }

@@ -9,7 +9,7 @@ Vue.config.productionTip = false;
 import router from './config/router';
 import store from './store/store';
 
-import ErrorService from './services/ErrorService';
+//import ErrorService from './services/ErrorService';
 
 Vue.use(VueRouter);
 
@@ -19,7 +19,7 @@ Vue.use(VueRouter);
 // });
 
 // console.log(store);
-Vue.config.errorHandler = (error) => ErrorService.onError(error);
+//Vue.config.errorHandler = (error) => ErrorService.onError(error);
 
 new Vue({
   router,

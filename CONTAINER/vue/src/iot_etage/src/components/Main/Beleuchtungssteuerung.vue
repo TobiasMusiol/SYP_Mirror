@@ -19,11 +19,16 @@
                     <v-col cols="6">
                       <v-switch
                         v-model="switch1"
-                        :label="`${switch1 ? 'Automatisch' : 'Manuell'}`"
+                        :label="`${
+                          switch1.toString() == 'true'
+                            ? 'Automatisch'
+                            : 'Manuell'
+                        }`"
+                        @change="changeMode"
                       ></v-switch>
                     </v-col>
                   </v-row>
-                  <template v-if="!switch1">
+                  <template v-if="switch1.toString() == 'false'">
                     <v-row align="center">
                       <v-col cols="6">Helligkeit</v-col>
                       <v-col cols="6">
@@ -33,16 +38,12 @@
                           thumb-label
                           ticks
                           append-icon="mdi-lightbulb"
+                          @mouseup="setBrightness"
                         ></v-slider>
                       </v-col>
                     </v-row>
                   </template>
                 </v-container>
-                <v-card-actions v-if="checkPermissions()" class="text-center">
-                  <v-btn outlined rounded text @click="changeState()">
-                    Ändern
-                  </v-btn>
-                </v-card-actions>
               </v-list-item-subtitle>
             </v-list-item-content>
 
@@ -63,55 +64,96 @@ export default {
   name: "Beleuchtungssteuerung",
   data() {
     return {
-      switch1: true, // true = Automatisch, false = Manuell
+      appName: "light",
+      switch1: true,
       brightness: 0,
-      sensorValue: 0,
     };
   },
-  computed: {
-    usertype: function () {
-      return this.$store.state.user.usertype;
-    },
+  mounted: async function () {
+    try {
+      const response = await fetch(
+        `${config.urls.backend.base}/${this.appName}`,
+        {
+          method: "get",
+          headers: {
+            ...config.headers,
+            "Authorization": localStorage.getItem("user-token"),
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        const data = await response.json();
+        console.log(data);
+      } else {
+        this.$store.commit("toggleAlert", {
+          alertType: "info",
+          alertMessage: "Fehler beim Post Request",
+          showAlert: true,
+        });
+      }
+    } catch (e) {
+      this.$store.commit("toggleAlert", {
+        alertType: "info",
+        alertMessage: "Fehler beim Post Request",
+        showAlert: true,
+      });
+    }
   },
   methods: {
-    checkPermissions() {
-      return this.usertype === config.userTypes.ADMIN ||
-        this.usertype === config.userTypes.FM
-        ? true
-        : false;
-    },
-    async changeState() {
-      let payloadBody = {};
-      //Automatisch
-      if (this.switch1) {
-        payloadBody.action = "switchMode";
-        payloadBody.payload = {};
-        payloadBody.payload.targetMode = "auto";
-      } else {
-        payloadBody.aciton = "setBrightness";
-        payloadBody.payload = {};
-        payloadBody.payload.brightness = this.brightness;
-      }
-      const respone = await fetch(`${config.urls.backend.base}/light`, {
+    sendPostRequest(jsonObj) {
+      fetch(`${config.urls.backend.base}/${this.appName}`, {
         method: "post",
         headers: {
           ...config.headers,
           "Authorization": localStorage.getItem("user-token"),
         },
-        body: JSON.stringify(payloadBody),
+        body: JSON.stringify(jsonObj),
+      }).then(async (response) => {
+        if (response.status === 200) {
+          //TODO Richtigen Response auswerten
+          console.log("success");
+          const data = await response.json();
+          this.$store.commit("toggleAlert", {
+            alertType: "info",
+            alertMessage: data.message,
+            showAlert: true,
+          });
+        } else {
+          this.$store.commit("toggleAlert", {
+            alertType: "info",
+            alertMessage: "Fehler beim Post Request",
+            showAlert: true,
+          });
+        }
       });
-      if (respone.status === 201 || respone.status === 200) {
-        console.log("alles gut");
-      } else {
-        this.$store.commit("toggleAlert", {
-          alertType: "error",
-          alertMessage: "Änderung fehlgeschalgen",
-          showAlert: true,
-        });
-      }
+    },
+    setBrightness() {
+      console.log(`Setting Brightness to ${this.brightness}`);
+      let json = {
+        "MCUID": 1001,
+        "action": "setBrigthness",
+        "payload": {
+          "brigthness": this.brightness,
+        },
+      };
+      this.sendPostRequest(json);
+    },
+    changeMode() {
+      console.log(
+        `Changing mode to ${this.switch1 ? "automatisch" : "manuell"}`
+      );
+      let targetMode = this.switch1 ? "auto" : "man";
+      let json = {
+        "MCUID": 1001,
+        "action": "switchMode",
+        "payload": {
+          "targetMode": targetMode,
+        },
+      };
+      this.sendPostRequest(json);
     },
   },
-  async checkSensorSettings() {},
 };
 </script>
 
