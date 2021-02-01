@@ -49,6 +49,8 @@ static const unsigned char PROGMEM logo_bmp[] =
 //Declare Sensor
 MQUnifiedsensor MQ135(placa, Voltage_Resolution, ADC_Bit_Resolution, pin, type);
 float CO2 = 0;
+double CO2_AVG = 0;
+unsigned long n = 0;
 
 //Programmzustand
 typedef enum{MANU,AUTO} Modus;
@@ -117,8 +119,59 @@ void mqtt_connect()
   }
 }
 
+void sendSensorData(String sensorType, String payload){
+  char buf[200];
+  docOut["UID"] = UID;
+  docOut["sensorType"] = sensorType;
+  docOut["payload"] = payload;
+      
+  serializeJson(docOut, buf);
+  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+            
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
+void sendEventData(String action, String oldState, String newState, String trigger){
+  char buf[200];
+  StaticJsonDocument<200> docEvent;
+  docEvent["UID"] = UID;
+  docEvent["action"] = action;
+  docEvent["oldState"] = oldState;
+  docEvent["newState"] = newState;
+  docEvent["trigger"] = trigger;
+  serializeJson(docEvent, buf);
+  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
+void sendResponse(String action,bool success, String message){
+  char buf[200];
+  StaticJsonDocument<200> docResponse;
+  docResponse["UID"] = String(UID);
+  docResponse["action"] = action;
+  docResponse["success"] = success;
+  docResponse["message"] = message;
+
+  serializeJson(docResponse, buf);
+  client.publish(MQTT_PUB_RESPONSE_TOPIC, buf, false);
+
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_RESPONSE_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
 void receivedCallback(char* topic, byte* payload, unsigned int length)
 {
+  String response = "";
+  
   Serial.print("Received [");
   Serial.print(topic);
   Serial.print("]: ");
@@ -128,51 +181,76 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
   }
   Serial.println("");
 
+  //Nachricht parsen
   const char* payloadBuffer = (const char*) payload;
   deserializeJson(docIn, payloadBuffer);
   
   int uid = docIn["MCUID"];
-  const char* action = docIn["action"];
-  
-  Serial.println(uid);
-  Serial.println(action);
-  
+  String action = docIn["action"];
+ 
   if(uid == UID){
-    if(strcmp(action,"switchMode") == 0){
-      const char* targetMode = docIn["payload"]["targetMode"];
-      if(strcmp(targetMode,"auto") == 0){
-        int threshold_in = docIn["payload"]["threshold"];
-        if(threshold_in >= 0 && threshold_in <= 10000){
-        threshold = threshold_in;
+    //Modus wechslen
+    if(action =="switchMode"){
+      String targetMode = docIn["payload"]["targetMode"];
+      
+      //Automatik
+      if(targetMode == "auto"){
+        
+        if(modus == AUTO){
+          sendResponse(action, false, "Allready in auto Mode.");
         }
-        modus = AUTO;
-        Serial.println("Modus ist jetzt Automatik");
-        Serial.print("Neuer Threshold: ");
-        Serial.println(threshold);
+        else{
+          modus = AUTO;
+          sendResponse(action, true, "");
+          sendEventData(action,"MANUELL","AUTOMATIK","human");
+        } 
       }
-      else if(strcmp(targetMode,"manu") == 0){
-        modus = MANU;
+      //Manuell
+      else if(targetMode == "manu"){
+        
+        if(modus == MANU){
+          sendResponse(action, false,"Allready in manuell Mode.");
+        }
+        else{
+          modus = MANU;
+          sendResponse(action, true, "");
+          sendEventData(action,"AUTOMATIK","MANUELL","human");
+        }
       }
-      Serial.print("Modus ist jetzt: ");
-      Serial.println(modus);
-    }
-    else if(strcmp(action,"setThreshold") == 0){
-      int threshold_in = docIn["payload"]["threshold"];
-      if(threshold_in >= 0 && threshold_in <= 10000){
-        threshold = threshold_in;
-      }
-      Serial.print("Neuer Threshold in PPM: ");
-      Serial.println(threshold);
-    }
-    else if(strcmp(action,"setSpeed") == 0 && modus == MANU){
-      int speed_in = docIn["payload"]["speed"];
-      if(speed_in >= 0 && speed_in <=100){
-        speed_pc = speed_in;
-        Serial.print("Neuer Lueftergeschwindigkeit in %: ");
-        Serial.println(speed_pc);
+      else{
+        sendResponse(action, false,"Unknown Targed Mode.");
       }
     }
     
+    //Threshold setzen
+    else if(action == "setThreshold"){
+      int threshold_in = docIn["payload"]["threshold"];
+      
+      if(threshold_in > 0 && threshold_in <= 10000){
+        sendEventData(action,String(threshold),String(threshold_in),"human");
+        threshold = threshold_in;
+        sendResponse(action, true, "");
+      }else{
+        sendResponse(action, false, "Threshold value not in Range. Range: 1 - 10000PPM");
+      }
+    }
+    
+    //Geschwindigkeit setzten
+    else if(action == "setSpeed"){
+      int speed_in = docIn["payload"]["speed"];
+      
+      if(speed_in >= 0 && speed_in <=100){
+        sendEventData(action, String(speed_pc), String(speed_in), "human");
+        sendResponse(action, true, "");
+        speed_pc = speed_in;
+      }
+      else{
+        sendResponse(action, false, "Speed value not in Range. Range: 0 - 100%");
+      }
+    }
+    else{
+      sendResponse(action, false, "Unknown action.");
+    }
   }
 }
 
@@ -207,7 +285,7 @@ void setup() {
   Serial.begin(115200); //Init serial port
   if(!Serial) delay(500);
 
-  
+  /*******************************MQ135_INIT_START****************************************/  
   //Set math model to calculate the PPM concentration and the value of constants
   MQ135.setRegressionMethod(1); //_PPM =  a*ratio^b
   /*****************************  MQ Init ********************************************/ 
@@ -216,7 +294,7 @@ void setup() {
   MQ135.init(); 
   
     //If the RL value is different from 10K please assign your RL value with the following method:
-    MQ135.setRL(1);
+    MQ135.setRL(1); //Gemessen mit Multimeter 1k
   /*****************************  MQ CAlibration ********************************************/ 
   // Explanation: 
   // In this routine the sensor will measure the resistance of the sensor supposing before was pre-heated
@@ -241,6 +319,7 @@ void setup() {
   Serial.println("** Lectures from MQ-135 ****");
   Serial.println("|   CO2  |");  
 
+  /*******************************MQ135_INIT_END****************************************/  
   /*******************************DISPLAY_INIT_START****************************************/
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -320,34 +399,19 @@ void loop() {
   }
   /***************************NETZWERK_BIS_HIER****************************/
 
-  if(modus == AUTO){
-    if(millis()-lastMillis > REFRESH_RATE_MS){
-      lastMillis = millis();
-      MQ135.update(); // Update data, the arduino will be read the voltage on the analog pin
-      MQ135.setA(110.47); MQ135.setB(-2.862); // Configurate the ecuation values to get CO2 concentration
-      CO2 = MQ135.readSensor(); // Sensor will read PPM concentration using the model and a and b values setted before or in the setup
-      Serial.print("   |   "); Serial.print(CO2); 
-      Serial.println("   |"); 
-  
-      if(CO2 > threshold){
-        analogWrite(LUEFTER_PIN,PWM_MAX);
-        Serial.println("Luefter an.");
-      }else{
-        analogWrite(LUEFTER_PIN,0);
-        Serial.println("Luefter aus.");
-      }
-      //Sensordaten hochladen
-      docOut["uid"] = UID;
-      docOut["sensorType"] = "CO2";
-      docOut["payload"] = CO2;
-      
-      serializeJson(docOut, buf);
-      client.publish(MQTT_PUB_TOPIC, buf, false);
-            
-      Serial.print("Published [");
-      Serial.print(MQTT_PUB_TOPIC);
-      Serial.print("]: ");
-      Serial.println(buf);
+  MQ135.update(); // Update data, the arduino will be read the voltage on the analog pin
+  MQ135.setA(110.47); MQ135.setB(-2.862); // Configurate the ecuation values to get CO2 concentration
+  CO2 = MQ135.readSensor(); // Sensor will read PPM concentration using the model and a and b values setted before or in the setup
+  CO2_AVG += CO2;
+  n++;
+
+  if(modus == AUTO){ 
+    if(CO2 > threshold){
+      analogWrite(LUEFTER_PIN,PWM_MAX);
+      //Serial.println("Luefter an.");
+    }else{
+      analogWrite(LUEFTER_PIN,0);
+      //Serial.println("Luefter aus.");
     }
   }
   //Manueller Modus
@@ -358,19 +422,23 @@ void loop() {
     analogWrite(LUEFTER_PIN,PWM); 
   }
 
-  if(CO2 > threshold) lueftenNotwendig = 1;
-  else lueftenNotwendig = 0;
+  //Luftdaten ans Backend senden
+  if(millis()-lastMillis > REFRESH_RATE_MS){
+    lastMillis = millis();
+    if(n!= 0)CO2_AVG = CO2_AVG / n;
+    sendSensorData("AIRQUALITY",String(CO2_AVG));
+    CO2_AVG = 0;
+    n = 0;
+  }
 
+  //Raumluftstatus angeben
+  if(CO2 > threshold){
+    if(lueftenNotwendig == 0) sendEventData("checkAir","ok", "ventilate", "AIRQUALITY");
+    lueftenNotwendig = 1;
+  }
+  else{
+    if(lueftenNotwendig == 1) sendEventData("checkAir", "ventilate", "ok", "AIRQUALITY");
+    lueftenNotwendig = 0;
+  }
   drawRaumstatus();
 }
-
- /*
-    Exponential regression:
-  GAS      | a      | b
-  CO       | 605.18 | -3.937  
-  Alcohol  | 77.255 | -3.18 
-  CO2      | 110.47 | -2.862
-  Tolueno  | 44.947 | -3.445
-  NH4      | 102.2  | -2.473
-  Acetona  | 34.668 | -3.369
-  */

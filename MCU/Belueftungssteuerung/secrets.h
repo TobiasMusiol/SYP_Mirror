@@ -1,12 +1,11 @@
 #define SECRET_SSID "<YOUR SSID>"
 #define SECRET_PASS "<YOUR SSID PASSWORD>"
 
-
 //MCU1001 = Lichtsteuerung
 //MCU1002 = Markisensteuerung
 //MCU1003 = Belueftungssteuerung
 //MCU1004 = Raumstatus
-#define HOSTNAME "MCU1001"
+#define HOSTNAME "MCU100X" 
 
 #define MQTT_HOST "<MQTT BROKER ADDRESS>"
 #define MQTT_PORT 8884

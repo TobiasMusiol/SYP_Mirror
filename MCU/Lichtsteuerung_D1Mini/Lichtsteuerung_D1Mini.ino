@@ -14,8 +14,10 @@ Modus modus = AUTO;
 
 //Lichtstaerke
 #define PWM_MAX 600                       //Max Wert fuer PWM
-int PWM = 0;
-int PWM_PC =0;
+int PWM_OUT = 0;
+int PWM_OUT_PC = 0;
+int PWM_SENSOR = 0;
+int PWM_SENSOR_PC = 0;
 
 //Sonstige
 int i = 0;
@@ -29,7 +31,6 @@ WiFiClientSecure espClient;
 PubSubClient client(espClient);
 StaticJsonDocument<200> docOut;
 StaticJsonDocument<200> docIn;
-char buf[200];
 byte mac[6];
 unsigned long lastMillis = 0;
 
@@ -74,6 +75,58 @@ void mqtt_connect()
   }
 }
 
+
+void sendSensorData(String sensorType, String payload){
+  char buf[200];
+  docOut["UID"] = UID;
+  docOut["sensorType"] = sensorType;
+  docOut["payload"] = payload;
+      
+  serializeJson(docOut, buf);
+  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+            
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
+void sendEventData(String action, String oldState, String newState, String trigger){
+  char buf[200];
+  StaticJsonDocument<200> docEvent;
+  docEvent["UID"] = UID;
+  docEvent["action"] = action;
+  docEvent["oldState"] = oldState;
+  docEvent["newState"] = newState;
+  docEvent["trigger"] = trigger;
+  serializeJson(docEvent, buf);
+  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
+void sendResponse(String action, bool success, String message){
+  char buf[200];
+  StaticJsonDocument<200> docResponse;
+  docResponse["UID"] = String(UID);
+  docResponse["action"] = action;
+  docResponse["success"] = success;
+  docResponse["message"] = message;
+
+  serializeJson(docResponse, buf);
+  client.publish(MQTT_PUB_RESPONSE_TOPIC, buf, false);
+
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_RESPONSE_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
+
+
 void receivedCallback(char* topic, byte* payload, unsigned int length)
 {
   Serial.print("Received [");
@@ -89,26 +142,68 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
   deserializeJson(docIn, payloadBuffer);
   
   int uid = docIn["MCUID"];
-  const char* action = docIn["action"];
+  String action = docIn["action"];
   
   Serial.println(uid);
   Serial.println(action);
   
   if(uid == UID){
-    if(strcmp(action,"switchMode")==0){
-      const char* targetMode = docIn["payload"]["targetMode"];
-      Serial.println(targetMode);
-      if(strcmp(targetMode,"auto")==0) modus = AUTO;
-      else if(strcmp(targetMode,"manu")==0) modus = MANU;
-      Serial.print("Modus ist jetzt: ");
-      Serial.println(modus);
+    
+    if(action == "switchMode"){
+      String targetMode = docIn["payload"]["targetMode"];
+      String oldState;
+      
+      if(modus == AUTO) oldState = "auto";
+      else oldState = "manuell";
+      
+      if(targetMode == "auto"){
+        
+        if(modus != AUTO){
+          modus = AUTO;
+          sendEventData(action, oldState, "auto", "human");
+          sendResponse(action, true, "");
+        }
+        else{
+          sendResponse(action, false, "Already in Mode auto.");
+        }
+      }
+      else if(targetMode == "manu"){
+        
+        if(modus != MANU){
+          modus = MANU;
+          sendEventData(action, oldState, "manuell", "human");
+          sendResponse(action, true, "");
+        }
+        else{
+          sendResponse(action, false, "Already in Mode manuell.");
+        }
+        
+      }
+      
     }
-    else if(strcmp(action,"setBrigthness")==0 && modus == MANU){
-      PWM_PC = docIn["payload"]["brigthness"];
-      if(PWM_PC > 100) PWM_PC = 100;
-      else if(PWM_PC < 0) PWM_PC = 0;
-      Serial.print("Neuer PWM Wert(Prozentual): ");
-      Serial.println(PWM_PC);
+    else if(action == "setBrigthness"){
+
+      if(modus == MANU){
+
+        int PWM_IN_PC = docIn["payload"]["brigthness"];
+        
+        if(PWM_IN_PC >= 0 && PWM_IN_PC <= 100){
+          sendEventData(action, String(PWM_OUT_PC), String(PWM_IN_PC), "human");
+          sendResponse(action, true, "");
+          PWM_OUT_PC = PWM_IN_PC;
+        }
+        else{
+          sendResponse(action, false, "Brigthness value not in Range. Range: 0 - 100%");
+        }
+        
+      }
+      else{
+        sendResponse(action, false, "Control is not in manuel Mode.");
+      }
+      
+    }
+    else{
+      sendResponse(action, false, "Unknown action.");
     }
   }
   
@@ -182,38 +277,32 @@ void loop() {
     }
   }
   /***************************NETZWERK_BIS_HIER****************************/
+
+  PWM_SENSOR = analogRead(LIGHT_SENSOR_PIN); //PWM Wert einlesen
+  PWM_SENSOR = 1023 - PWM_SENSOR; 
+  PWM_SENSOR_PC = PWM_SENSOR*100/1023;
+  
+  if (millis() - lastMillis > REFRESH_RATE_MS){
+    lastMillis = millis();
+    sendSensorData("LIGHTLEVEL_INDOOR",String(PWM_SENSOR_PC));
+  }   
+  
   //Manueller Modus
   //MCU erhält PWM_PC Wert und muss ihn hier nur ausfuehren
   if(modus == MANU){
-    PWM = PWM_PC*PWM_MAX/100;
-    if(PWM > PWM_MAX) PWM = PWM_MAX;
-    else if(PWM < 0)PWM = 0;
-    analogWrite(LIGHT_PIN,PWM);   
+    PWM_OUT = PWM_OUT_PC*PWM_MAX/100;
+    if(PWM_OUT > PWM_MAX) PWM_OUT = PWM_MAX;
+    else if(PWM_OUT < 0)PWM_OUT = 0;
+    analogWrite(LIGHT_PIN,PWM_OUT);   
   }
+  
   //Automatik Modus
   else{
-    if (millis() - lastMillis > REFRESH_RATE_MS){
-      lastMillis = millis();
-      
-      PWM = analogRead(LIGHT_SENSOR_PIN); //PWM Wert einlesen      
-      if(PWM > PWM_MAX) PWM = PWM_MAX;   //Begrenzung, damit die LED Kette nicht zu Warm wird
-      else if(PWM < 0) PWM = 0;
-      PWM_PC = PWM*100/PWM_MAX;         //PWM Wert in Prozent umrechnen  
-      analogWrite(LIGHT_PIN,PWM);         
-  
-      //Sensordaten hochladen
-      docOut["uid"] = UID;
-      docOut["sensorType"] = "LIGHT_INSIDE";
-      docOut["payload"] = PWM_PC;
-  
-      serializeJson(docOut, buf);
-      client.publish(MQTT_PUB_TOPIC, buf, false);
-      
-      Serial.print("Published [");
-      Serial.print(MQTT_PUB_TOPIC);
-      Serial.print("]: ");
-      Serial.println(buf);
-    }
-    
+    PWM_OUT = PWM_SENSOR;
+    if(PWM_OUT > PWM_MAX) PWM_OUT = PWM_MAX;   //Begrenzung, damit die LED Kette nicht zu Warm wird
+    else if(PWM_OUT < 0) PWM_OUT = 0;
+    PWM_OUT_PC = PWM_OUT*100/PWM_MAX;         //PWM Wert in Prozent umrechnen
+    analogWrite(LIGHT_PIN,PWM_OUT);
   }
+  
 }

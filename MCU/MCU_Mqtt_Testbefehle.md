@@ -7,6 +7,8 @@ listener 1883
 
 Im Microcrontroller muss der Port 8884 benutzt werden.
 
+Antworten auf die versendeten Befehle kann man im entsprechendem Topic empfangen.
+
 SENSORDATEN MITHÖREN:
 
     mosquitto_sub -h localhost -p 1883 -u admin -P admin -t /iot_etage/sensordata
@@ -14,6 +16,10 @@ SENSORDATEN MITHÖREN:
 BEFEHLE MITHÖREN:
 
     mosquitto_sub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions
+
+ANTWORTEN MITHÖREN
+
+    mosquitto_sub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions/response
 
 
 BEFEHLE SENDEN:
@@ -43,7 +49,7 @@ BEFEHLE SENDEN:
     Startet im Manellen Modus
 
         Zu Automatik Modus wechseln und Threshold einstellen:
-        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1002,\"action\": \"switchMode\",\"payload\": {\"targetMode\": \"manu\",\"threshold\": 60}}"
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1002,\"action\": \"switchMode\",\"payload\": {\"targetMode\": \"auto\"}}"
 
         Zu Manuellen Modus wechseln:
         mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1002,\"action\": \"switchMode\",\"payload\": {\"targetMode\": \"manu\"}}"
@@ -74,8 +80,8 @@ BEFEHLE SENDEN:
     Belüftungssteuerung:
     Startet im manuellen Modus
 
-        Zu Automatik Modus wechseln und Threshold einstellen:
-        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1003,\"action\": \"switchMode\",\"payload\": {\"targetMode\": \"auto\",\"threshold\": 500}}"
+        Zu Automatik Modus wechseln:
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1003,\"action\": \"switchMode\",\"payload\": {\"targetMode\": \"auto\"}}"
 
         Zu Manuellen Modus wechseln:
         mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1003,\"action\": \"switchMode\",\"payload\": {\"targetMode\": \"manu\"}}"
@@ -93,7 +99,7 @@ BEFEHLE SENDEN:
                 manu : Manueller Modus
 
             threshold:
-                Ein PPM Wert zwischen 0 und  10000 : CO2 Werte über 500PPM gelten als ungesund. 
+                Ein PPM Wert zwischen 0 und  10000 : Dauerhafte CO2 Werte über 500PPM gelten als ungesund. 
 
             speed:
                 0 bis 100 : Stellt die Geschwindigkeit des Lüfter auf einen Prozentuallen Wert von 0 bis 100

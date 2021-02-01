@@ -78,7 +78,6 @@ WiFiClientSecure espClient;
 PubSubClient client(espClient);
 StaticJsonDocument<200> docOut;
 StaticJsonDocument<200> docIn;
-char buf[200];
 byte mac[6];
 unsigned long lastMillis = 0;
 
@@ -123,6 +122,40 @@ void mqtt_connect()
   }
 }
 
+void sendEventData(String action, String oldState, String newState, String trigger){
+  char buf[200];
+  StaticJsonDocument<200> docEvent;
+  docEvent["UID"] = UID;
+  docEvent["action"] = action;
+  docEvent["oldState"] = oldState;
+  docEvent["newState"] = newState;
+  docEvent["trigger"] = trigger;
+  serializeJson(docEvent, buf);
+  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
+void sendResponse(String action,bool success, String message){
+  char buf[200];
+  StaticJsonDocument<200> docResponse;
+  docResponse["UID"] = String(UID);
+  docResponse["action"] = action;
+  docResponse["success"] = success;
+  docResponse["message"] = message;
+
+  serializeJson(docResponse, buf);
+  client.publish(MQTT_PUB_RESPONSE_TOPIC, buf, false);
+
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_RESPONSE_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
 void receivedCallback(char* topic, byte* payload, unsigned int length)
 {
   Serial.print("Received [");
@@ -138,19 +171,69 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
   deserializeJson(docIn, payloadBuffer);
   
   int uid = docIn["MCUID"];
-  const char* action = docIn["action"];
+  String action = docIn["action"];
   
   Serial.println(uid);
   Serial.println(action);
   
   if(uid == UID){
-    if(strcmp(action,"setState") == 0){
-      const char* state = docIn["payload"]["state"];
-      if(strcmp(state, "free") == 0) raumstatus = FREI;
-      else if(strcmp(state,"occupied") == 0) raumstatus = BELEGT;
-      else if(strcmp(state,"cleaning")==0) raumstatus = REINIGEN;
+    
+    if(action == "setState"){
+      String state = docIn["payload"]["state"];
+      String oldState;
+      if(raumstatus == FREI) oldState = "free";
+      else if(raumstatus == BELEGT)oldState = "occupied";
+      else if(raumstatus == REINIGEN) oldState = "cleaning";
+      
+      if(state == "free") {
+        
+        if(raumstatus != FREI){
+          raumstatus = FREI;
+          sendEventData(action, oldState, "free", "human");
+          sendResponse(action, true, "");
+        }
+        
+        else{
+          sendResponse(action, false, "Room already in State free.");
+        }
+      }
+      
+      else if(state == "occupied"){
+        
+        if(raumstatus != BELEGT){
+          raumstatus = BELEGT;
+          sendEventData(action, oldState, "occupied", "human");
+          sendResponse(action, true, "");
+        }
+        
+        else{
+          sendResponse(action, false, "Room already in State occupied.");
+        }
+        
+      }
+      
+      else if(state == "cleaning"){
+        
+        if(raumstatus != REINIGEN){
+          raumstatus = REINIGEN;
+          sendEventData(action, oldState, "cleaning", "human");
+          sendResponse(action, true, "");
+        }
+        
+        else{
+          sendResponse(action, false, "Room already in State cleaning.");
+        }
+        
+      }
+      
+      else{
+        sendResponse(action, false, "Unknown State.");
+      }
       Serial.print("Neuer Status: ");
       Serial.println(state);
+    }
+    else{
+      sendResponse(action, false, "Unknown action.");
     }
   }
 }
@@ -263,7 +346,6 @@ void drawRaumstatus(){
 
   i = 0;
   while(text[i] != '\0'){
-    if (client.connected())client.loop();
     display.write(text[i]);
     i++;
   }

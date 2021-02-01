@@ -22,8 +22,7 @@ let json5 = {
 	'MCUID': 1002,
 	'action': 'switchMode',
 	'payload': {
-		'targetMode': 'auto',
-		'threshold': 60
+		'targetMode': 'auto'
 	}
 }
 
@@ -49,8 +48,7 @@ let json6 = {
 	'MCUID': 1003,
 	'action': 'switchMode',
 	'payload': {
-		'targetMode': 'auto',
-		'threshold': 50
+		'targetMode': 'auto'
 	}
 }
 
@@ -86,4 +84,13 @@ let json10 = {
 	'payload': {
 		'threshold': 70
 	}
+}
+
+
+//Antwort Objekt
+let json11 = {
+	'MCUID': 1001,
+	'action': 'setThreshold',
+	'success' : 'true OR false',
+	'message': 'Why it failed.'
 }

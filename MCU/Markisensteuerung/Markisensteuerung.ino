@@ -30,12 +30,12 @@ unsigned short down = 0;
 //Eingaenge
 int PWM = 0;
 int PWM_PC = 0;
-int threshold = 0;
+int threshold = 50;
 
 //Sonsiges
 int i = 0;
 
-//------------------------------------------------------------------------
+/***************************NETZWERK_VON_HIER****************************/
 
 //Daten Uebertragung
 #define UID 1002
@@ -44,7 +44,6 @@ WiFiClientSecure espClient;
 PubSubClient client(espClient);
 StaticJsonDocument<200> docOut;
 StaticJsonDocument<200> docIn;
-char buf[200];
 byte mac[6];
 unsigned long lastMillis = 0;
 
@@ -89,6 +88,57 @@ void mqtt_connect()
   }
 }
 
+void sendSensorData(String sensorType, String payload){
+  char buf[200];
+  docOut["UID"] = UID;
+  docOut["sensorType"] = sensorType;
+  docOut["payload"] = payload;
+      
+  serializeJson(docOut, buf);
+  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+            
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
+void sendEventData(String action, String oldState, String newState, String trigger){
+  char buf[200];
+  StaticJsonDocument<200> docEvent;
+  docEvent["UID"] = UID;
+  docEvent["action"] = action;
+  docEvent["oldState"] = oldState;
+  docEvent["newState"] = newState;
+  docEvent["trigger"] = trigger;
+  serializeJson(docEvent, buf);
+  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
+void sendResponse(String action, bool success, String message){
+  char buf[200];
+  StaticJsonDocument<200> docResponse;
+  docResponse["UID"] = String(UID);
+  docResponse["action"] = action;
+  docResponse["success"] = success;
+  docResponse["message"] = message;
+
+  serializeJson(docResponse, buf);
+  client.publish(MQTT_PUB_RESPONSE_TOPIC, buf, false);
+
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_RESPONSE_TOPIC);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
+
+
 void receivedCallback(char* topic, byte* payload, unsigned int length)
 {
   Serial.print("Received [");
@@ -104,57 +154,111 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
   deserializeJson(docIn, payloadBuffer);
   
   int uid = docIn["MCUID"];
-  const char* action = docIn["action"];
+  String action = docIn["action"];
   
   Serial.println(uid);
   Serial.println(action);
   
   if(uid == UID){
-    if(strcmp(action,"switchMode") == 0){
-      const char* targetMode = docIn["payload"]["targetMode"];
-      if(strcmp(targetMode,"auto") == 0){
-        int threshold_in = docIn["payload"]["threshold"];
-        if(threshold_in < 0) threshold = 0;
-        else if(threshold_in > 100) threshold = 0;
-        else threshold = threshold_in;
-        Serial.println(targetMode);
-        Serial.println(threshold);
-        modus = AUTO;
-        Serial.print("Neuer Threshold(Prozentual): ");
-        Serial.println(threshold);
+
+    //Modus einstellen
+    if(action == "switchMode"){
+      String targetMode = docIn["payload"]["targetMode"];
+      String oldState;
+      
+      if(modus == AUTO) oldState = "auto";
+      else oldState = "manuell";
+      
+      if(targetMode == "auto"){
+        
+        if(modus != AUTO){
+          modus = AUTO;
+          sendEventData(action, oldState, "auto", "human");
+          sendResponse(action, true, "");
+        }
+        else{
+          sendResponse(action, false, "Already in Mode auto.");
+        }
+        
       }
-      else if(strcmp(targetMode,"manu") == 0){
-        modus = MANU;
+      else if(targetMode == "manu"){
+        
+        if(modus != MANU){
+          modus = MANU;
+          sendEventData(action, oldState, "manuell", "human");
+          sendResponse(action, true, "");
+        }
+        else{
+          sendResponse(action, false, "Already in Mode manuell.");
+        }
+        
       }
-      Serial.print("Modus ist jetzt: ");
-      Serial.println(modus);
+      
     }
-    else if(strcmp(action,"setThreshold") == 0){
+    //Grenzwert einstellen
+    else if(action == "setThreshold"){
       int threshold_in = docIn["payload"]["threshold"];
-      if(threshold_in < 0) threshold = 0;
-      else if(threshold_in > 100) threshold = 0;
-      else threshold = threshold_in;
-      Serial.print("Neuer Threshold(Prozentual): ");
-      Serial.println(threshold);
+      
+      if(threshold_in >= 0 && threshold_in <= 100){
+        sendEventData(action, String(threshold), String(threshold_in), "human");
+        threshold = threshold_in;
+        sendResponse(action, true, "");
+      }
+      else{
+        sendResponse(action, false, "Threshold value not in Range. Range: 0 - 100%");
+      }
+      
     }
-    else if(strcmp(action,"toggle") == 0 && modus == MANU){
-    const char* direction_in = docIn["payload"]["direction"];
-    Serial.println(direction_in);
-    if(( strcmp(direction_in,"up") == 0) && (istUnten == 1) ){
-      up = 1;
-      down = 0;
-      Serial.println("Runterfahren.");
+    //Markise schalten
+    else if(action == "toggle"){
+      
+      if(modus == MANU){
+        String direction_in = docIn["payload"]["direction"];
+
+        //Hochfahren
+        if(direction_in == "up"){
+          
+          if(istUnten == 1){
+            up = 1;
+            down = 0;
+            sendResponse(action, true, "");
+          }
+          else{
+            sendResponse(action, false, "Awning already up.");
+          }
+          
+        }
+        //Runterfahren
+        else if(direction_in == "down"){
+
+          if(istOben == 1){
+            up = 0;
+            down = 1;
+            sendResponse(action, true, "");
+          }
+          else{
+            sendResponse(action, false, "Awning already down.");
+          }
+       
+        }
+        else{
+          sendResponse(action, false, "Unknown direction.");
+        }
+        
+      }
+      else{
+        sendResponse(action, false, "Control is not in manuel Mode.");
+      }
+      
     }
-    else if( (strcmp(direction_in,"down") == 0) && (istOben == 1) ){
-      up = 0;
-      down = 1;
-      Serial.println("Runterfahren.");
+    else{
+      sendResponse(action, false, "Unknown action.");
     }
-  }
+    
   }
 }
 
-//------------------------------------------------------------------------
+/***************************NETZWERK_BIS_HIER****************************/
 
 void setup() {
   // set the speed at 60 rpm:
@@ -213,12 +317,13 @@ void motor_abschalten(){
 //Markise hoch
 void fahre_hoch(){
   for(i = 0; i < steps; i++){
-    if (client.connected()) client.loop();
     ESP.wdtFeed();
+    if (client.connected()) client.loop();
     myStepper.step(-1);
     //Serial.println(i);
   }
   motor_abschalten();
+  sendEventData("toogle", "isDown", "isUp", HOSTNAME);
   istOben = 1;
   istUnten = 0;
 }
@@ -228,12 +333,13 @@ void fahre_hoch(){
 //Markise runter
 void fahre_runter(){
   for(i = 0; i < steps; i++){
-    if (client.connected()) client.loop();
     ESP.wdtFeed();
+    if (client.connected()) client.loop();
     myStepper.step(1);
     //Serial.println(i);
   }
   motor_abschalten();
+  sendEventData("toogle", "isUp", "isDown", HOSTNAME);
   istOben = 0;
   istUnten = 1;
 }
@@ -244,57 +350,55 @@ void loop() {
 
   /***************************NETZWERK_VON_HIER****************************/
   //Verbindung aufbauen, falls keine Verbindung besteht.
-  if (WiFi.status() != WL_CONNECTED)
-  {
+  if (WiFi.status() != WL_CONNECTED){
     Serial.print("Checking wifi");
-    while (WiFi.waitForConnectResult() != WL_CONNECTED)
-    {
+    
+    while (WiFi.waitForConnectResult() != WL_CONNECTED){
       WiFi.begin(SECRET_SSID, SECRET_PASS);
       Serial.print(".");
       delay(10);
     }
+    
     Serial.println("connected");
-  } else {
-    if (!client.connected())
-    {
+  } 
+  else{
+    
+    if(!client.connected()){
       mqtt_connect();
-    } else {
+    } 
+    else{
       client.loop();
     }
+    
   }
   /***************************NETZWERK_BIS_HIER****************************/
 
+  //Eingang auslesen
+  //Licht gering => R hoch => U hoch => PWM hoch
+  PWM = analogRead(LIGHT_SENSOR_PIN);
+  PWM = 1023 - PWM;
+  PWM_PC = PWM*100/1023;
+
+  if(millis()-lastMillis > REFRESH_RATE_MS){
+    lastMillis = millis();
+    sendSensorData("LIGHTLEVEL_OUTDOOR", String(PWM_PC));
+  }
+
   if(modus == AUTO){
-    if(millis()-lastMillis > REFRESH_RATE_MS){
-        lastMillis = millis();
-      //Eingang auslesen
-      //Licht gering => R hoch => U hoch => PWM hoch
-      PWM = analogRead(LIGHT_SENSOR_PIN);
-      PWM_PC = PWM*100/1023;
-      if(PWM_PC <= threshold && istOben == 1){
-        fahre_runter();
-      }else if(PWM_PC > threshold && istUnten == 1){
-        fahre_hoch();
-      }else{
-        motor_abschalten();
-      }
-  
-      //Sensordaten hochladen
-        docOut["uid"] = UID;
-        docOut["sensorType"] = "LIGHT_OUTSIDE";
-        docOut["payload"] = PWM_PC;
-    
-        serializeJson(docOut, buf);
-        client.publish(MQTT_PUB_TOPIC, buf, false);
-        
-        Serial.print("Published [");
-        Serial.print(MQTT_PUB_TOPIC);
-        Serial.print("]: ");
-        Serial.println(buf);
+
+    if(PWM_PC <= threshold && istOben == 1){
+      fahre_runter();
     }
+    else if(PWM_PC > threshold && istUnten == 1){
+      fahre_hoch();
+    }
+    else{
+      motor_abschalten();
+    }
+      
+  }
+  else{
     
-          
-  }else{
     if(down == 1){
       fahre_runter();
       down = 0;
@@ -306,6 +410,7 @@ void loop() {
     else{
       motor_abschalten();
     }
+    
   }
   
 
