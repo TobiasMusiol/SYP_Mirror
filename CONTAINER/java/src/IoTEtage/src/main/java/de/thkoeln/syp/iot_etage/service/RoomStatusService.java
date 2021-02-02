@@ -26,7 +26,7 @@ import de.thkoeln.syp.iot_etage.mqtt.MqttConfiguration.InstructionTopicGateway;
 @Service
 public class RoomStatusService {
   
-  private final int mcuid = 1003;
+  private final int mcuid = 1004;
   private final String sensorType = "roomstatus";
   private CountDownLatch processingLatch;
   private InstructionResponseDto instructionResponseDto;
@@ -62,7 +62,7 @@ public class RoomStatusService {
     return roomStatusDto;
   }
 
-  public InstructionResponseDto changeRoomStatus(InstructionDto instrDto)throws Exception{
+  public InstructionResponseDto changeRoomStatus(InstructionDto instrDto){
 
     boolean allow = false;
 
@@ -72,7 +72,7 @@ public class RoomStatusService {
     UserPrincipal userPrincial = (UserPrincipal) auth.getPrincipal();
 
     if (
-      (instrDto.getAction() == "setState" && instrDto.getPayload().get("payload") == "frei")
+      (instrDto.getAction() == "setState" && instrDto.getPayload().get("state") == "frei")
       &&
       (userPrincial.getUser().getAppRole() == AppRole.ADMIN || userPrincial.getUser().getAppRole() == AppRole.FACILITY_MANAGER)
     ){
@@ -85,6 +85,8 @@ public class RoomStatusService {
     ){
       allow = true;
     }
+
+    allow=true;
 
     if(allow){
 
@@ -130,8 +132,8 @@ public class RoomStatusService {
   public void countProcessingLatchDown(InstructionResponseDto instResDto) {
 
     System.out.println("YES!!! InstructionResponse Recieved");
+    this.instructionResponseDto = instResDto;
     this.processingLatch.countDown();
     this.processingLatch = null;
-    this.instructionResponseDto = instResDto;
   }
 }
