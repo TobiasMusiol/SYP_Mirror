@@ -59,7 +59,7 @@ export default {
 
 data () {
     return {
-      appName: 'markisolette',
+      appName: "markisolette",
       switch1: true,
       aufzu: true,
       threshold: 20,
