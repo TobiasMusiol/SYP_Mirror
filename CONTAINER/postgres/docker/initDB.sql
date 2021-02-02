@@ -9,8 +9,30 @@ ALTER ROLE iot_etage_blau_admin SET timezone TO 'UTC';
 
 \c iot_etage_blau_db
 
-create table IF NOT EXISTS "iot_etage_sensordata" (id serial PRIMARY KEY, "uid" varchar(30) NOT NULL, "sensorType" varchar(30) NOT NULL, "payload" varchar(30) NULL, "timestamp" timestamp NOT NULL DEFAULT NOW());
-create table IF NOT EXISTS "iot_etage_eventdata" (id serial PRIMARY KEY, "action" varchar(30) NOT NULL, "oldState" varchar(30) NOT NULL, "newState" varchar(30) NOT NULL, "trigger" varchar(30), "timestamp" timestamp NOT NULL DEFAULT NOW());
+create table IF NOT EXISTS "iot_etage_sensordata" (
+  id serial PRIMARY KEY, 
+  "uid" varchar(30) NOT NULL, 
+  "sensortype" varchar(30) NOT NULL, 
+  "payload" varchar(30) NOT NULL, 
+  "timestamp" timestamp NOT NULL DEFAULT NOW()
+);
+
+create table IF NOT EXISTS "iot_etage_eventdata" (
+  id serial PRIMARY KEY, 
+  "action" varchar(30) NOT NULL, 
+  "oldstate" varchar(30) NOT NULL, 
+  "newstate" varchar(30) NOT NULL, 
+  "trigger" varchar(30) NOT NULL, 
+  "timestamp" timestamp NOT NULL DEFAULT NOW()
+);
+
+create table IF NOT EXISTS
+"users" (
+  id serial PRIMARY KEY,
+  "name" varchar(30) NOT NULL,
+  "password" varchar(120) NOT NULL,
+  "role" varchar(30)
+);
 
 ALTER DATABASE iot_etage_blau_db SET TIMEZONE TO 'Europe/Berlin';
 

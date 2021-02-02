@@ -1,0 +1,45 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Debug (Attach) - Remote Java",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": "8091"
+    },
+    {
+      "address": "localhost",
+      "localRoot": "${workspaceFolder}/CONTAINER/nodejs_worker/src",
+      "name": "Attach to Remote Worker-Node.js",
+      "port": 3001,
+      "remoteRoot": "/worker",
+      "request": "attach",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "pwa-node"
+    },
+    {
+      "address": "localhost",
+      "localRoot": "${workspaceFolder}/CONTAINER/nodejs_api/src",
+      "name": "Attach to Remote API-Node.js",
+      "port": 3003,
+      "remoteRoot": "/api",
+      "request": "attach",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-IoTEtageApplication<iot_etage>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "mainClass": "de.thkoeln.syp.IoTEtageApplication",
+      "projectName": "iot_etage",
+      "args": ""
+    }
+  ]
+}

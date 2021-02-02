@@ -1,2 +1,3 @@
-*.sh    text eol=lf # End-Of-Lines: immer Linux
-*   text=auto
+# End-Of-Lines: immer Linux für .sh Dateien
+*.sh    text eol=lf 
+*       text=auto

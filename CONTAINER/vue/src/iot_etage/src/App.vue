@@ -1,33 +1,67 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <!--
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <v-app>
+    <navigation-bar></navigation-bar>
+    <router-view name="mainview" />
+    <router-view name="footerview" />
+    <div class="alert-position">
+      <v-alert
+        :value="alert.displayAlert"
+        @input="toggleAlert()"
+        color="blue-grey darken-2"
+        dark
+        dense
+        dismissible
+        close-text="Scließen"
+        >{{ alert.alertMessage }}
+      </v-alert>
+    </div>
+    <!-- Alert Testen
+    <v-btn color="primary" @click="toggleAlert('warning', 'The TEST')"
+      >Toggle Alert</v-btn
+    >
     -->
-    <Test></Test>
-  </div>
+  </v-app>
 </template>
 
 <script>
-//import HelloWorld from './components/HelloWorld.vue';
-import Test from './components/Test';
-
+import NavigationBar from "./components/Base/NavigationBar.vue";
 export default {
-  name: 'App',
+  name: "IoT_EtageApp",
+
   components: {
-    //HelloWorld,
-    Test,
-  }
-}
+    NavigationBar,
+  },
+
+  data: () => ({}),
+
+  computed: {
+    alert() {
+      console.log(this.$store);
+      return this.$store.state.alert;
+    },
+  },
+  methods: {
+    isLoggedIn() {
+      return this.test;
+    },
+    toggleAlert() {
+      console.log(this.$store);
+      this.$store.commit("toggleAlert", {});
+    },
+  },
+};
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+<style lang="css">
+.height-100 {
+  height: 100%;
+}
+
+.alert-position {
+  position: absolute;
+  bottom: 0;
+  right: 15px;
+  z-index: 1000;
+  max-width: 350px;
 }
 </style>

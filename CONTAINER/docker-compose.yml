@@ -7,8 +7,8 @@ services:
     container_name: vue
     hostname: vue
     restart: always
-    #depends_on:
-      #- 'java'
+    depends_on:
+      - 'java'
     healthcheck:
       test: 'curl -f http://localhost:8080 -k'
     ports:
@@ -17,82 +17,38 @@ services:
     volumes:
       - ./vue/src/iot_etage:/app
     environment:
-      - TEST=test
+      - VUE_APP_ENV=prod
+      - VUE_APP_BASE_URL='http://localhost:8080'
+      - VUE_APP_BACKEND_URL=http://localhost:8090
+      - CHOKIDAR_USEPOLLING=true
     networks:
       iot-network:
         ipv4_address: 192.16.1.10
     command: '/app/node_modules/.bin/vue-cli-service serve --host 0.0.0.0 --port 8080'
-    #command: '/bin/bash'
-    #tty: true
-    logging:
-      driver: 'none'
 
-  worker:
+  java:
     build:
-      context: ./nodejs_worker/docker
-    image: iot_etage/worker
-    container_name: worker
-    hostname: worker
-    restart: always
-    depends_on:
-      - 'mosquitto'
-    #  - 'java'
-    ports:
-      - '3000:3000'
-      - '3001:3001'
-    volumes:
-      - ./nodejs_worker/src:/worker
-    networks:
-      iot-network:
-        ipv4_address: 192.16.1.20
-    command: 'node index.js'
-
-  api:
-    build:
-      context: ./nodejs_api/docker
-    image: iot_etage/api
-    container_name: api
-    hostname: api
+      context: ./java/docker
+    image: iot_etage/java
+    container_name: java
+    hostname: java
     restart: always
     depends_on:
       - 'postgres'
+      - 'mosquitto'
     ports:
-      - '3002:3002'
-      - '3003:3003'
+      - '8090:8090'
+      - '8091:8091'
     volumes:
-      - ./nodejs_api/src:/api
+      - ./java/src/IoTEtage/:/app/
+      - java-maven-local-repository:/root/.m2
+    environment:
+      - ENV=prod
+      - REBUILD=true
     networks:
       iot-network:
-        ipv4_address: 192.16.1.25
-    command: 'node index.js'
-
-  # java:
-  #   build:
-  #     context: ./java/docker
-  #   image: iot_etage/java
-  #   container_name: java
-  #   hostname: java
-  #   restart: always
-  #   depends_on:
-  #     - 'mongo'
-  #     - 'mysql'
-  #     - 'postgres'
-  #   healthcheck:
-  #     test: 'curl -f http://localhost:4200 -k'
-  #   ports:
-  #     - '4200:4200'
-  #   volumes:
-  #     - ./java/src:/app
-  #   environment:
-  #     # - TEST=test
-  #   networks:
-  #     iot-network:
-  #       ipv4_address: 192.16.1.30
-  #   command: # ...
-  #   #command: '/bin/bash'
-  #   #tty: true
-  #   #logging:
-  #   #  driver: 'none'
+        ipv4_address: 192.16.1.30
+    command: 'java -jar target/iot_etage-0.0.1-SNAPSHOT.jar'
 
   mosquitto:
     build:
@@ -102,17 +58,18 @@ services:
     hostname: mosquitto
     restart: always
     #healthcheck:
-    #  test: 'curl -X GET 'http://localhost:4041/iot/about''
+    #test: 'curl -X GET "http://localhost:1883/iot/about"'
     ports:
       - '1884:1883'
       - '1885:1884'
+      - '8884:8883'
       #- '9001:9001'
     volumes:
       - ./mosquitto/configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
     environment:
-      - TEST=Test
+      - ENV=prod
     networks:
       iot-network:
         ipv4_address: 192.16.1.40
@@ -130,17 +87,15 @@ services:
       - '5432:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./postgres/SQL-Scripts:/scripts
     environment:
       - TZ=Europe/Berlin
       - PGTZ=Europe/Berlin
       - POSTGRES_PASSWORD=admin_password
+      - ENV=prod
     networks:
       iot-network:
         ipv4_address: 192.16.1.50
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
 
 networks:
   iot-network:
@@ -152,3 +107,4 @@ networks:
 
 volumes:
   postgres-data:
+  java-maven-local-repository:
