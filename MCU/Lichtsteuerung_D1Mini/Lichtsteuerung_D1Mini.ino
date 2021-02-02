@@ -164,7 +164,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
           sendResponse(action, true, "");
         }
         else{
-          sendResponse(action, false, "Already in Mode auto.");
+          sendResponse(action, false, "Bereits im Automatik Modus.");
         }
       }
       else if(targetMode == "manu"){
@@ -175,7 +175,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
           sendResponse(action, true, "");
         }
         else{
-          sendResponse(action, false, "Already in Mode manuell.");
+          sendResponse(action, false, "Bereits im manuellen Modus.");
         }
         
       }
@@ -193,17 +193,17 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
           PWM_OUT_PC = PWM_IN_PC;
         }
         else{
-          sendResponse(action, false, "Brigthness value not in Range. Range: 0 - 100%");
+          sendResponse(action, false, "Lichtwert im Wertebereich (0 - 100%)");
         }
         
       }
       else{
-        sendResponse(action, false, "Control is not in manuel Mode.");
+        sendResponse(action, false, "Steuerung ist nicht im manuellen Modus.");
       }
       
     }
     else{
-      sendResponse(action, false, "Unknown action.");
+      sendResponse(action, false, "Unbekannte Aktion.");
     }
   }
   
@@ -279,6 +279,7 @@ void loop() {
   /***************************NETZWERK_BIS_HIER****************************/
 
   PWM_SENSOR = analogRead(LIGHT_SENSOR_PIN); //PWM Wert einlesen
+  delay(100);
   PWM_SENSOR = 1023 - PWM_SENSOR; 
   PWM_SENSOR_PC = PWM_SENSOR*100/1023;
   
@@ -298,7 +299,8 @@ void loop() {
   
   //Automatik Modus
   else{
-    PWM_OUT = PWM_SENSOR;
+    PWM_OUT = 1023 
+    - PWM_SENSOR;
     if(PWM_OUT > PWM_MAX) PWM_OUT = PWM_MAX;   //Begrenzung, damit die LED Kette nicht zu Warm wird
     else if(PWM_OUT < 0) PWM_OUT = 0;
     PWM_OUT_PC = PWM_OUT*100/PWM_MAX;         //PWM Wert in Prozent umrechnen

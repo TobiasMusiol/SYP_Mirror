@@ -1,80 +1,85 @@
-#include <MQUnifiedsensor.h>
-#include <SPI.h>
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include <Stepper.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include "secrets.h"
 
-//Display
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
-#define OLED_RESET LED_BUILTIN // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-unsigned short lueftenNotwendig = 0;
-int i = 0;
-String text;
+#define LIGHT_SENSOR_PIN A0
+#define motSpeed 10               //Speed in RPM
+#define stepsPerRev 2048          // change this to fit the number of steps per revolution
+#define REVS 2                    //Anz Umdrehungen, um Markise hochzufahren
 
-#define LOGO_HEIGHT   16
-#define LOGO_WIDTH    16
-static const unsigned char PROGMEM logo_bmp[] =
-{ B00000000, B11000000,
-  B00000001, B11000000,
-  B00000001, B11000000,
-  B00000011, B11100000,
-  B11110011, B11100000,
-  B11111110, B11111000,
-  B01111110, B11111111,
-  B00110011, B10011111,
-  B00011111, B11111100,
-  B00001101, B01110000,
-  B00011011, B10100000,
-  B00111111, B11100000,
-  B00111111, B11110000,
-  B01111100, B11110000,
-  B01110000, B01110000,
-  B00000000, B00110000 };
+#define MPIN1 5                   //Motor PIN 1
+#define MPIN2 4                   //Motor PIN 2
+#define MPIN3 0                   //Motor PIN 3
+#define MPIN4 2                   //Motor PIN 4
 
-//MQ135 Sensor
-#define placa "ESP8266"
-#define Voltage_Resolution 3.3
-#define pin A0 //Analog input 0 of your arduino
-#define type "MQ-135" //MQ135
-#define ADC_Bit_Resolution 10 // For arduino UNO/MEGA/NANO
-#define RatioMQ135CleanAir 3.6//RS / R0 = 3.6 ppm  
-//#define calibration_button 13 //Pin to calibrate your sensor
-//Declare Sensor
-MQUnifiedsensor MQ135(placa, Voltage_Resolution, ADC_Bit_Resolution, pin, type);
-float CO2 = 0;
-double CO2_AVG = 0;
-unsigned long n = 0;
+const int steps = stepsPerRev * REVS;     //Schritte fuer eine Umdrehung
+Stepper myStepper(stepsPerRev, MPIN1, MPIN3, MPIN2, MPIN4);
 
 //Programmzustand
 typedef enum{MANU,AUTO} Modus;
 Modus modus = AUTO;
 
-//Luefter
-#define LUEFTER_PIN 15                     //Luefter Pin D3 (GPIO 0)
-#define PWM_MAX 1023                       //Max Wert fuer PWM
+//Schalter fuer Zustandsaenderung, welche automatisch gesetzt werden
+unsigned short istOben = 1;
+unsigned short istUnten = 0;
+unsigned short up = 0;
+unsigned short down = 0;
+//Eingaenge
 int PWM = 0;
-int PWM_PC =0;
-int threshold = 100;
-int speed_pc = 0;
+int PWM_PC = 0;
+int threshold = 50;
 
+//Sonsiges
+int i = 0;
+
+void motor_abschalten(){
+  digitalWrite(MPIN1, LOW);
+  digitalWrite(MPIN2, LOW);
+  digitalWrite(MPIN3, LOW);
+  digitalWrite(MPIN4, LOW);
+}
+
+//Drives the motor revolution Revolutions 
+//Feeds the Watchdog
+//Markise hoch
+void fahre_hoch(){
+  for(i = 0; i < steps; i++){
+    ESP.wdtFeed();
+    myStepper.step(-1);
+    //Serial.println(i);
+  }
+  motor_abschalten();
+  sendEventData("toogle", "isDown", "isUp", HOSTNAME);
+  istOben = 1;
+  istUnten = 0;
+}
+
+//Drives the motor revolution Revolutions
+//Feeds the Watchdog
+//Markise runter
+void fahre_runter(){
+  for(i = 0; i < steps; i++){
+    ESP.wdtFeed();
+    myStepper.step(1);
+    //Serial.println(i);
+  }
+  motor_abschalten();
+  sendEventData("toogle", "isUp", "isDown", HOSTNAME);
+  istOben = 0;
+  istUnten = 1;
+}
 
 /***************************NETZWERK_VON_HIER****************************/
 
 //Daten Uebertragung
-#define UID 1003
+#define UID 1002
 #define REFRESH_RATE_MS 10000
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 StaticJsonDocument<200> docOut;
 StaticJsonDocument<200> docIn;
-char buf[200];
 byte mac[6];
 unsigned long lastMillis = 0;
 
@@ -119,6 +124,7 @@ void mqtt_connect()
   }
 }
 
+
 void sendSensorData(String sensorType, String payload){
   char buf[200];
   docOut["UID"] = UID;
@@ -128,7 +134,7 @@ void sendSensorData(String sensorType, String payload){
   serializeJson(docOut, buf);
   client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
             
-  Serial.print("Published [");
+  Serial.print("\nPublished [");
   Serial.print(MQTT_PUB_DATA_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
@@ -145,13 +151,13 @@ void sendEventData(String action, String oldState, String newState, String trigg
   serializeJson(docEvent, buf);
   client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
 
-  Serial.print("Published [");
+  Serial.print("\nPublished [");
   Serial.print(MQTT_PUB_DATA_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
 }
 
-void sendResponse(String action,bool success, String message){
+void sendResponse(String action, bool success, String message){
   char buf[200];
   StaticJsonDocument<200> docResponse;
   docResponse["UID"] = String(UID);
@@ -162,16 +168,16 @@ void sendResponse(String action,bool success, String message){
   serializeJson(docResponse, buf);
   client.publish(MQTT_PUB_RESPONSE_TOPIC, buf, false);
 
-  Serial.print("Published [");
+  Serial.print("\nPublished [");
   Serial.print(MQTT_PUB_RESPONSE_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
 }
 
+
+
 void receivedCallback(char* topic, byte* payload, unsigned int length)
 {
-  String response = "";
-  
   Serial.print("Received [");
   Serial.print(topic);
   Serial.print("]: ");
@@ -181,162 +187,122 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
   }
   Serial.println("");
 
-  //Nachricht parsen
   const char* payloadBuffer = (const char*) payload;
   deserializeJson(docIn, payloadBuffer);
   
   int uid = docIn["MCUID"];
   String action = docIn["action"];
- 
+  
+  Serial.println(uid);
+  Serial.println(action);
+  
   if(uid == UID){
-    //Modus wechslen
-    if(action =="switchMode"){
+
+    //Modus einstellen
+    if(action == "switchMode"){
       String targetMode = docIn["payload"]["targetMode"];
+      String oldState;
       
-      //Automatik
+      if(modus == AUTO) oldState = "auto";
+      else oldState = "manuell";
+      
       if(targetMode == "auto"){
         
-        if(modus == AUTO){
-          sendResponse(action, false, "Allready in auto Mode.");
+        if(modus != AUTO){
+          modus = AUTO;
+          sendEventData(action, oldState, "auto", "human");
+          sendResponse(action, true, "");
         }
         else{
-          modus = AUTO;
-          sendResponse(action, true, "");
-          sendEventData(action,"MANUELL","AUTOMATIK","human");
-        } 
+          sendResponse(action, false, "Bereits im Automatik Modus.");
+        }
+        
       }
-      //Manuell
       else if(targetMode == "manu"){
         
-        if(modus == MANU){
-          sendResponse(action, false,"Allready in manuell Mode.");
+        if(modus != MANU){
+          modus = MANU;
+          sendEventData(action, oldState, "manuell", "human");
+          sendResponse(action, true, "");
         }
         else{
-          modus = MANU;
-          sendResponse(action, true, "");
-          sendEventData(action,"AUTOMATIK","MANUELL","human");
+          sendResponse(action, false, "Bereits im manuellen Modus.");
         }
+        
       }
-      else{
-        sendResponse(action, false,"Unknown Targed Mode.");
-      }
+      
     }
-    
-    //Threshold setzen
+    //Grenzwert einstellen
     else if(action == "setThreshold"){
       int threshold_in = docIn["payload"]["threshold"];
       
-      if(threshold_in > 0 && threshold_in <= 10000){
-        sendEventData(action,String(threshold),String(threshold_in),"human");
+      if(threshold_in >= 0 && threshold_in <= 100){
+        sendEventData(action, String(threshold), String(threshold_in), "human");
         threshold = threshold_in;
         sendResponse(action, true, "");
-      }else{
-        sendResponse(action, false, "Threshold value not in Range. Range: 1 - 10000PPM");
-      }
-    }
-    
-    //Geschwindigkeit setzten
-    else if(action == "setSpeed"){
-      int speed_in = docIn["payload"]["speed"];
-      
-      if(speed_in >= 0 && speed_in <=100){
-        sendEventData(action, String(speed_pc), String(speed_in), "human");
-        sendResponse(action, true, "");
-        speed_pc = speed_in;
       }
       else{
-        sendResponse(action, false, "Speed value not in Range. Range: 0 - 100%");
+        sendResponse(action, false, "Threshold nicht im Wertebereich (0 - 100%)");
       }
+      
+    }
+    //Markise schalten
+    else if(action == "toggle"){
+      
+      if(modus == MANU){
+        String direction_in = docIn["payload"]["direction"];
+
+        //Hochfahren
+        if(direction_in == "up"){
+          
+          if(istUnten == 1){
+            up = 1;
+            down = 0;
+            sendResponse(action, true, "");
+          }
+          else{
+            sendResponse(action, false, "Markise bereits oben.");
+          }
+          
+        }
+        //Runterfahren
+        else if(direction_in == "down"){
+
+          if(istOben == 1){
+            up = 0;
+            down = 1;
+            sendResponse(action, true, "");
+          }
+          else{
+            sendResponse(action, false, "Markise bereits unten.");
+          }
+       
+        }
+        else{
+          sendResponse(action, false, "Unbekannte Richtung.");
+        }
+        
+      }
+      else{
+        sendResponse(action, false, "Steuerung nicht im manuellen Modus.");
+      }
+      
     }
     else{
-      sendResponse(action, false, "Unknown action.");
+      sendResponse(action, false, "Unbekannte Aktion.");
     }
+    
   }
 }
 
 /***************************NETZWERK_BIS_HIER****************************/
 
-//Am Ende des Textes ist \0 Zwingend erforderlich
-void drawRaumstatus(){
-
-  if(lueftenNotwendig == 1) text = "LUEFTEN!";
-  else text = "";
-
-  display.clearDisplay();
-
-  display.setTextSize(2);      // Normal 1:1 pixel scale
-  display.setTextColor(SSD1306_WHITE); // Draw white text
-  display.setCursor(0, 13);     // Start at top-left corner
-  display.cp437(true);         // Use full 256 char 'Code Page 437' font
-
-  i = 0;
-  while(text[i] != '\0'){
-    display.write(text[i]);
-    i++;
-  }
-
-  display.display();
-}
-
-
 void setup() {
-  
-  //Init the serial port communication - to debug the library
-  Serial.begin(115200); //Init serial port
+  // set the speed at 60 rpm:
+  myStepper.setSpeed(motSpeed);
+  // initialize the serial port:
+  Serial.begin(115200);
   if(!Serial) delay(500);
-
-  /*******************************MQ135_INIT_START****************************************/  
-  //Set math model to calculate the PPM concentration and the value of constants
-  MQ135.setRegressionMethod(1); //_PPM =  a*ratio^b
-  /*****************************  MQ Init ********************************************/ 
-  //Remarks: Configure the pin of arduino as input.
-  /************************************************************************************/ 
-  MQ135.init(); 
-  
-    //If the RL value is different from 10K please assign your RL value with the following method:
-    MQ135.setRL(1); //Gemessen mit Multimeter 1k
-  /*****************************  MQ CAlibration ********************************************/ 
-  // Explanation: 
-  // In this routine the sensor will measure the resistance of the sensor supposing before was pre-heated
-  // and now is on clean air (Calibration conditions), and it will setup R0 value.
-  // We recomend execute this routine only on setup or on the laboratory and save on the eeprom of your arduino
-  // This routine not need to execute to every restart, you can load your R0 if you know the value
-  // Acknowledgements: https://jayconsystems.com/blog/understanding-a-gas-sensor
-  Serial.print("Calibrating please wait.");
-  float calcR0 = 0;
-  for(int i = 1; i<=10; i ++)
-  {
-    MQ135.update(); // Update data, the arduino will be read the voltage on the analog pin
-    calcR0 += MQ135.calibrate(RatioMQ135CleanAir);
-    Serial.print(".");
-  }
-  MQ135.setR0(calcR0/10);
-  Serial.println("  done!.");
-  
-  if(isinf(calcR0)) {Serial.println("Warning: Conection issue founded, R0 is infite (Open circuit detected) please check your wiring and supply"); while(1);}
-  if(calcR0 == 0){Serial.println("Warning: Conection issue founded, R0 is zero (Analog pin with short circuit to ground) please check your wiring and supply"); while(1);}
-  /*****************************  MQ CAlibration ********************************************/ 
-  Serial.println("** Lectures from MQ-135 ****");
-  Serial.println("|   CO2  |");  
-
-  /*******************************MQ135_INIT_END****************************************/  
-  /*******************************DISPLAY_INIT_START****************************************/
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
-  }
-
-  // Show initial display buffer contents on the screen --
-  // the library initializes this with an Adafruit splash screen.
-  display.display();
-  delay(2000); // Pause for 2 seconds
-
-  // Clear the buffer
-  display.clearDisplay();
-
-  /*******************************DISPLAY_INIT_END****************************************/
-
 
   /***************************NETZWERK_VON_HIER****************************/
   Serial.print("Attempting to connect to SSID: ");
@@ -373,72 +339,75 @@ void setup() {
   client.setServer(MQTT_HOST, MQTT_PORT);
   client.setCallback(receivedCallback);
   mqtt_connect();
-  /***************************NETZWERK_BIS_HIER****************************/
-}
+  /***************************NETZWERK_BIS_HIER****************************/  
+}       
 
 void loop() {
 
   /***************************NETZWERK_VON_HIER****************************/
   //Verbindung aufbauen, falls keine Verbindung besteht.
-  if (WiFi.status() != WL_CONNECTED){
+  if (WiFi.status() != WL_CONNECTED)
+  {
     Serial.print("Checking wifi");
-    while (WiFi.waitForConnectResult() != WL_CONNECTED){
+    while (WiFi.waitForConnectResult() != WL_CONNECTED)
+    {
       WiFi.begin(SECRET_SSID, SECRET_PASS);
       Serial.print(".");
       delay(10);
     }
     Serial.println("connected");
-  } 
-  else{
-    if(!client.connected()){
+  } else {
+    if (!client.connected())
+    {
       mqtt_connect();
-    } 
-    else{
+    } else {
       client.loop();
     }
   }
   /***************************NETZWERK_BIS_HIER****************************/
 
-  MQ135.update(); // Update data, the arduino will be read the voltage on the analog pin
-  MQ135.setA(110.47); MQ135.setB(-2.862); // Configurate the ecuation values to get CO2 concentration
-  CO2 = MQ135.readSensor(); // Sensor will read PPM concentration using the model and a and b values setted before or in the setup
-  CO2_AVG += CO2;
-  n++;
-
-  if(modus == AUTO){ 
-    if(CO2 > threshold){
-      analogWrite(LUEFTER_PIN,PWM_MAX);
-      //Serial.println("Luefter an.");
-    }else{
-      analogWrite(LUEFTER_PIN,0);
-      //Serial.println("Luefter aus.");
-    }
-  }
-  //Manueller Modus
-  else{
-    PWM = PWM_PC*PWM_MAX/100;
-    if(PWM > PWM_MAX) PWM = PWM_MAX;
-    else if(PWM < 0)PWM = 0;
-    analogWrite(LUEFTER_PIN,PWM); 
-  }
-
-  //Luftdaten ans Backend senden
+  //Eingang auslesen
+    //Licht gering => R hoch => U hoch => PWM hoch
+    PWM = analogRead(LIGHT_SENSOR_PIN);
+    delay(200);
+    PWM = 1023 - PWM;
+    PWM_PC = PWM*100/1023;
+    
   if(millis()-lastMillis > REFRESH_RATE_MS){
+    
     lastMillis = millis();
-    if(n!= 0)CO2_AVG = CO2_AVG / n;
-    sendSensorData("AIRQUALITY",String(CO2_AVG));
-    CO2_AVG = 0;
-    n = 0;
+    sendSensorData("LIGHTLEVEL_OUTDOOR", String(PWM_PC));
   }
 
-  //Raumluftstatus angeben
-  if(CO2 > threshold){
-    if(lueftenNotwendig == 0) sendEventData("checkAir","ok", "ventilate", "AIRQUALITY");
-    lueftenNotwendig = 1;
+  if(modus == AUTO){
+    
+
+    if(PWM_PC <= threshold && istOben == 1){
+      fahre_runter();
+    }
+    else if(PWM_PC > threshold && istUnten == 1){
+      fahre_hoch();
+    }
+    else{
+      motor_abschalten();
+    }
+      
   }
   else{
-    if(lueftenNotwendig == 1) sendEventData("checkAir", "ventilate", "ok", "AIRQUALITY");
-    lueftenNotwendig = 0;
+    
+    if(down == 1){
+      fahre_runter();
+      down = 0;
+    }
+    else if(up == 1){
+      fahre_hoch();
+      up = 0;
+    }
+    else{
+      motor_abschalten();
+    }
+    
   }
-  drawRaumstatus();
+  
+
 }

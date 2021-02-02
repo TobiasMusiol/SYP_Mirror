@@ -48,7 +48,7 @@ BEFEHLE SENDEN:
     Markisensteuerung:
     Startet im Manellen Modus
 
-        Zu Automatik Modus wechseln und Threshold einstellen:
+        Zu Automatik Modus wechseln:
         mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1002,\"action\": \"switchMode\",\"payload\": {\"targetMode\": \"auto\"}}"
 
         Zu Manuellen Modus wechseln:
@@ -90,7 +90,7 @@ BEFEHLE SENDEN:
         mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1003,\"action\":\"setSpeed\",\"payload\": {\"speed\": 100}}"
 
         Threshold einstellen:
-        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1003,\"action\":\"setThreshold\",\"payload\": {\"threshold\": 500}}"
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1003,\"action\":\"setThreshold\",\"payload\": {\"threshold\": 20}}"
 
         Variablen erklärt:
 
@@ -99,12 +99,10 @@ BEFEHLE SENDEN:
                 manu : Manueller Modus
 
             threshold:
-                Ein PPM Wert zwischen 0 und  10000 : Dauerhafte CO2 Werte über 500PPM gelten als ungesund. 
+                Ein Temperatur Wert zwischen 0 und  50°C : Sinnvoller Temperaturwert. Range habe ich von 0°C bis 100C° eingestellt. Andere werte spucken eine Fehlermeldung aus. 
 
             speed:
                 0 bis 100 : Stellt die Geschwindigkeit des Lüfter auf einen Prozentuallen Wert von 0 bis 100
-
-
 
     Raumstatus:
     Startet mit dem Status 'free'
@@ -125,7 +123,19 @@ BEFEHLE SENDEN:
                 occupied : Der Raum ist belegt und kann nicht genutzt werden.
                 cleaning : Der Raum befindet sich gerade in der Reinigung. (Ähnlich wie im Kino)
 
+    Raumluftstatus:
+    Gibt an, ob die Luft im Raum in Ordnung ist.
+
+        Threshold einstellen:
+        mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"MCUID\": 1005,\"action\":\"setThreshold\",\"payload\": {\"threshold\": 20}}"
+
 
             
+Mogliche Werte für Sensortype:
 
-
+    HUMIDITY_RELATIVE
+    TEMPERATURE
+    AIRPRESSURE
+    AIRQUALITY
+    LIGHTLEVEL_OUTDOOR
+    LIGHTLEVEL_INDOOR
