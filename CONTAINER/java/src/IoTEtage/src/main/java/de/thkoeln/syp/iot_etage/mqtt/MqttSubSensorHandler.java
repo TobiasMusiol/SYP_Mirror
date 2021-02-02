@@ -41,6 +41,6 @@ public class MqttSubSensorHandler implements MessageHandler {
       e.printStackTrace();
     }
     newSensorDataDto = this.sensorService.insertSensorData(newSensorDataDto);
-    System.out.println("ID: " + newSensorDataDto.getId());
+    System.out.println("Sensor ID: " + newSensorDataDto.getId());
   }
 }

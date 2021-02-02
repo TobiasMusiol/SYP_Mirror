@@ -1,5 +1,8 @@
 package de.thkoeln.syp.iot_etage.service;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,6 +27,7 @@ public class AirService {
 
   private final int mcuid = 1003;
   private final String sensorType = "air";
+  private CountDownLatch processingLatch;
 
   @Autowired
   private final AirStatus airStatus;
@@ -36,47 +40,48 @@ public class AirService {
 
   // Konstruktoren
   @Autowired
-  public AirService(
-    AirStatus airStatus,
-    InstructionTopicGateway instructionTopicGateway,
-    EventRepository eventRepository,
-    SensorRepository sensorRepository
-  ){
+  public AirService(AirStatus airStatus, InstructionTopicGateway instructionTopicGateway,
+      EventRepository eventRepository, SensorRepository sensorRepository) {
     this.airStatus = airStatus;
     this.instructionTopicGateway = instructionTopicGateway;
     this.EventRepository = eventRepository;
     this.sensorRepository = sensorRepository;
   }
 
-  //Methoden
+  // Methoden
 
   /**
-   * get 
+   * get
    */
- 
-  public AirStatusDto getCurrentState(){
+
+  public AirStatusDto getCurrentState() {
     AirStatusDto airStatusDto = new AirStatusDto();
-    
+
     EventData eventData = this.EventRepository.findTopByTriggerOrderByTimestampDesc(this.sensorType);
-    if(eventData == null){
+    if (eventData == null) {
       airStatusDto.setState(State.NO_DATA);
-    }
-    else {
+    } else {
       airStatusDto.setState(this.airStatus.getState());
     }
 
     SensorData sensorData = this.sensorRepository.findTopBySensorTypeOrderByTimestampDesc(this.sensorType);
-    if(sensorData == null){
+    if (sensorData == null) {
       airStatusDto.setSensorValue("0");
-    }
-    else {
+    } else {
       airStatusDto.setSensorValue(sensorData.getPayload());
     }
 
     return airStatusDto;
   }
-  
-  public boolean changeStatus(InstructionDto instructionDto){
+
+  /**
+   * Status ändern. Es wird eine Instruction an Mqtt Server gesendet
+   * 
+   * @param instructionDto
+   * @return
+   */
+
+  public boolean changeStatus(InstructionDto instructionDto) {
 
     instructionDto.setMcuid(this.mcuid);
 
@@ -85,14 +90,29 @@ public class AirService {
 
     try {
       jsonString = objMapper.writeValueAsString(instructionDto);
-    }
-    catch(JsonProcessingException e){
+    } catch (JsonProcessingException e) {
       e.printStackTrace();
       return false;
     }
 
     this.instructionTopicGateway.sendToMqtt(jsonString);
+    this.processingLatch = new CountDownLatch(1);
+
+    try {
+      this.processingLatch.await(20, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return false;
+    }
 
     return true;
+    }
+
+    //Helper Funktions
+
+    public void countProcessingLatchDown() {
+      System.out.println("YES!!! InstructionResponse Recieved");
+      this.processingLatch.countDown();
     }
 }

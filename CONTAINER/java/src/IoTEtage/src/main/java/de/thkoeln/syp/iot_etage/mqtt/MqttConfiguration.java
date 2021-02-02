@@ -101,6 +101,32 @@ public class MqttConfiguration {
     return new MqttSubEventHandler();
   }
 
+  // inbound-Adpater = subscribe Topic instructions/response
+  @Bean
+  public MessageProducer inboundInstructionResponse() {
+    String clientId = "Java_" + UUID.randomUUID().toString();
+    MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(clientId,
+        this.mqttClientFactory(), "iot_etage/instructions/response");
+    adapter.setCompletionTimeout(5000);
+    adapter.setConverter(new DefaultPahoMessageConverter());
+    adapter.setQos(1);
+    adapter.setOutputChannel(mqttInputChannelInstructionResponse());
+
+    return adapter;
+  }
+
+  @Bean
+  public MessageChannel mqttInputChannelInstructionResponse() {
+    return new DirectChannel();
+  }
+
+  @Bean
+  @ServiceActivator(inputChannel = "mqttInputChannelInstructionResponse")
+  public MessageHandler handlerInstructionResponse() {
+
+    return new MqttInstructionResponseHandler();
+  }
+
   // outbound = publish
 
   @Bean
@@ -122,6 +148,5 @@ public class MqttConfiguration {
   public interface InstructionTopicGateway {
 
     void sendToMqtt(String data);
-
   }
 }

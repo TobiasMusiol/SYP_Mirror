@@ -35,6 +35,8 @@ public class MqttSubEventHandler implements MessageHandler {
       e.printStackTrace();
     }
     newEventDataDto = this.eventService.createEvent(newEventDataDto);
+    System.out.println("Event ID: " + newEventDataDto.getId());
+
   }
 
 
