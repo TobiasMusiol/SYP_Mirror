@@ -18,6 +18,7 @@ import de.thkoeln.syp.iot_etage.auth.helper.AppAuthority;
 import de.thkoeln.syp.iot_etage.controller.dto.InstructionDto;
 import de.thkoeln.syp.iot_etage.controller.dto.LightStatusDto;
 import de.thkoeln.syp.iot_etage.controller.dto.ResponseDto;
+import de.thkoeln.syp.iot_etage.mqtt.InstructionResponseDto;
 import de.thkoeln.syp.iot_etage.service.LightService;
 
 /**
@@ -63,18 +64,23 @@ public class LightController {
 
     ResponseDto response = new ResponseDto();
 
-    boolean success = this.lightService.changeStatus(instructionDto);
+    InstructionResponseDto instrResponse = this.lightService.changeStatus(instructionDto);
 
-    if (success){
-
+    if (instrResponse != null){
       response.setHttpStatus(HttpStatus.OK);
-      response.setMessage("Änderung and MCu gesendet");
+
+      if(instrResponse.isSuccess()){
+        response.setMessage("Änderung erfolgreich angewandt");
+      }
+      else {
+        response.setMessage("Änderung nicht ausgefürht: " +instrResponse.getMessage());
+      }
 
       return ResponseEntity.ok().body(response);
     }
 
     response.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
-    response.setMessage("Äneurng an MCU nicht gesendet");
+    response.setMessage("Änderung an MCU nicht gesendet");
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
   }

@@ -1,5 +1,7 @@
 package de.thkoeln.syp.iot_etage.service;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +19,7 @@ import de.thkoeln.syp.iot_etage.domain.helper.State;
 import de.thkoeln.syp.iot_etage.domain.model.LightStatus;
 import de.thkoeln.syp.iot_etage.domain.repository.EventRepository;
 import de.thkoeln.syp.iot_etage.domain.repository.SensorRepository;
+import de.thkoeln.syp.iot_etage.mqtt.InstructionResponseDto;
 import de.thkoeln.syp.iot_etage.mqtt.MqttConfiguration.InstructionTopicGateway;
 
 /**
@@ -29,6 +32,8 @@ public class LightService {
 
   private final int mcuid = 1001;
   private final String sensorType = "LIGHT_INSIDE";
+  private CountDownLatch processingLatch;
+  private InstructionResponseDto instructionResponse;
 
   @Autowired
   private LightStatus lightStatus;
@@ -67,7 +72,14 @@ public class LightService {
     return lightStatusDto;
   }  
 
-  public boolean changeStatus(InstructionDto instructionDto) {
+  /**
+   * 
+   * @param instructionDto
+   * @return
+   */
+  public InstructionResponseDto changeStatus(InstructionDto instructionDto) {
+
+    this.instructionResponse = null;
 
     instructionDto.setMcuid(this.mcuid);
 
@@ -79,11 +91,39 @@ public class LightService {
     } catch (JsonProcessingException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-      return false;
+      return null;
     }
 
+
+    if(this.processingLatch != null){
+      return null;
+    }
+
+    this.processingLatch = new CountDownLatch(1);
     this.instructionTopicGateways.sendToMqtt(jsonString);
-    
-    return true;
+
+    try {
+      this.processingLatch.await(20, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return null;
+    }
+
+    if(instructionDto.getAction() == "switchMode"){
+      this.lightStatus.setState((State) instructionDto.getPayload().get("targetMode"));
+    }
+
+    return this.instructionResponse;
+  }
+
+  //Helper Funktions
+
+  public void countProcessingLatchDown(InstructionResponseDto instrRes) {
+
+    System.out.println("YES!!! InstructionResponse Recieved");
+    this.instructionResponse = instrRes;
+    this.processingLatch.countDown();
+    this.processingLatch = null;
   }
 }

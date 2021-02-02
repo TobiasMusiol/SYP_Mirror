@@ -13,7 +13,7 @@ import de.thkoeln.syp.iot_etage.controller.dto.RoomStatusDto;
 import de.thkoeln.syp.iot_etage.service.RoomStatusService;
 
 @RestController
-@RequestMapping(path="/roomstatus")
+@RequestMapping(path="/roomstate")
 public class RoomStatusController {
   
   private final RoomStatusService roomStatusService;

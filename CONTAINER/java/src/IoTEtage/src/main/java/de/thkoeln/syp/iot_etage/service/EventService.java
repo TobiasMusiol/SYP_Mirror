@@ -90,18 +90,6 @@ public class EventService {
       newEventData = this.eventRepository.save(newEventData);      
       newEventDataDto = EventDataMapper.convertEventDataToEventDataDto(newEventData);
 
-      String trigger = newEventData.getTrigger();
-
-      switch (trigger){
-        case "LIGHT_INSIDE":
-          this.lightStatus.setState(State.COMPLETED);
-          break;
-        case "LIGHT_OUTSIDE":
-          this.awningStatus.setState(State.COMPLETED);
-        default:
-          break;
-      }
-
       return newEventDataDto;
     }
 
