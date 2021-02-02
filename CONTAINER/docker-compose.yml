@@ -26,55 +26,6 @@ services:
         ipv4_address: 192.16.1.10
     command: '/app/node_modules/.bin/vue-cli-service serve --host 0.0.0.0 --port 8080'
 
-  worker:
-    build:
-      context: ./nodejs_worker/docker
-    image: iot_etage/worker
-    container_name: worker
-    hostname: worker
-    restart: always
-    environment:
-      - MQTT_HOST=mqtts://192.16.1.40
-      - MQTT_PORT=8883
-      - MQTT_USER=user
-      - MQTT_PASS=user
-      - MQTT_SENSORDATA_TOPIC=/iot_etage/sensordata
-      - MQTT_INSTRUCTION_TOPIC=/iot_etage/instructions
-      - ENV=prod
-    depends_on:
-      - 'mosquitto'
-      - 'java'
-    ports:
-      - '3000:3000'
-      - '3001:3001'
-    volumes:
-      - ./nodejs_worker/src:/worker
-    networks:
-      iot-network:
-        ipv4_address: 192.16.1.20
-    command: 'node index.js'
-
-  api:
-    build:
-      context: ./nodejs_api/docker
-    image: iot_etage/api
-    container_name: api
-    hostname: api
-    restart: always
-    depends_on:
-      - 'postgres'
-    environment:
-      - ENV=prod
-    ports:
-      - '3002:3002'
-      - '3003:3003'
-    volumes:
-      - ./nodejs_api/src:/api
-    networks:
-      iot-network:
-        ipv4_address: 192.16.1.25
-    command: 'node index.js'
-
   java:
     build:
       context: ./java/docker
