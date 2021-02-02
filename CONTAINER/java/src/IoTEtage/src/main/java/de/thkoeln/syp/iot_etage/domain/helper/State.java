@@ -2,8 +2,8 @@ package de.thkoeln.syp.iot_etage.domain.helper;
 
 public enum State{
   NO_DATA("no data"),
-  PENDING("pending"),
-  COMPLETED("completed");
+  AUTO("auto"),
+  MAN("man");
   
   private final String name;
 

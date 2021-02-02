@@ -3,7 +3,6 @@ package de.thkoeln.syp.iot_etage.controller;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +18,7 @@ import de.thkoeln.syp.iot_etage.auth.helper.AppAuthority;
 import de.thkoeln.syp.iot_etage.controller.dto.AirStatusDto;
 import de.thkoeln.syp.iot_etage.controller.dto.InstructionDto;
 import de.thkoeln.syp.iot_etage.controller.dto.ResponseDto;
+import de.thkoeln.syp.iot_etage.mqtt.InstructionResponseDto;
 import de.thkoeln.syp.iot_etage.service.AirService;
 
 @RestController
@@ -55,11 +55,17 @@ public class AirController {
   @PreAuthorize("hasAuthority('"+AppAuthority.Names.EDIT_AIR+"')")
   public ResponseEntity<ResponseDto> changeState(@Valid @RequestBody InstructionDto instructionDto){
     ResponseDto response = new ResponseDto();
-    boolean success = this.airService.changeStatus(instructionDto);
+    InstructionResponseDto instrResponse = this.airService.changeStatus(instructionDto);
 
-    if (success) {
+    if (instrResponse != null ) {
       response.setHttpStatus(HttpStatus.OK);
-      response.setMessage("Änderung an MCU gesendet");
+
+      if(instrResponse.isSuccess()){
+        response.setMessage("Änderung Fertig");
+      }
+      else{
+        response.setMessage("Änderung nicht ausgeführt: " + instrResponse.getMessage());       
+      }
       return ResponseEntity.ok().body(response);
     }
 

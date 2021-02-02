@@ -14,7 +14,6 @@ public class SensorDataDto {
   private String sensorType;
   @NotEmpty
   private String payload;
-  @NotEmpty
   private Date timestamp;
 
   public SensorDataDto(long id, long uid, String sensorType, String payload, Date timestamp) {

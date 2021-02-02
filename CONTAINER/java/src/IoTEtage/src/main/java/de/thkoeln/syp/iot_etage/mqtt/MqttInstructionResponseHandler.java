@@ -13,6 +13,7 @@ import de.thkoeln.syp.iot_etage.domain.model.RoomStatus;
 import de.thkoeln.syp.iot_etage.service.AirService;
 import de.thkoeln.syp.iot_etage.service.AwningService;
 import de.thkoeln.syp.iot_etage.service.LightService;
+import de.thkoeln.syp.iot_etage.service.RoomStatusService;
 
 public class MqttInstructionResponseHandler implements MessageHandler {
 
@@ -23,7 +24,7 @@ public class MqttInstructionResponseHandler implements MessageHandler {
   @Autowired
   private LightService lightService;
   @Autowired 
-  private RoomStatus roomStatusService;
+  private RoomStatusService roomStatusService;
 
   @Override
   public void handleMessage(Message<?> message) throws MessagingException {
@@ -45,8 +46,21 @@ public class MqttInstructionResponseHandler implements MessageHandler {
 
     System.out.println("InstructionResposne recieved");
     switch (newInstructionResponseDto.getMCUID()){
-      case this.ai
+      // Beleuchung
+      case 1001:
+        this.lightService.countProcessingLatchDown(newInstructionResponseDto);
+        break;
+      // Markisen
+      case 1002:
+        this.awningService.countProcessingLatchDown(newInstructionResponseDto);
+        break;
+      //Lüftung
+      case 1003:
+        this.airService.countProcessingLatchDown(newInstructionResponseDto);
+        break;
+      //Roomstatus
+      case 1004:
+        this.roomStatusService.countProcessingLatchDown(newInstructionResponseDto);
     }
-    this.airService.countProcessingLatchDown();
   }
 }

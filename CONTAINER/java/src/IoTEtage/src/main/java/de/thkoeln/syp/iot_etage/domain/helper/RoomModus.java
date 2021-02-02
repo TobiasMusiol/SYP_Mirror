@@ -1,9 +1,10 @@
 package de.thkoeln.syp.iot_etage.domain.helper;
 
 public enum RoomModus {
-  LUEFTEN("Lüften"),
-  MEETING("Meeting"),
-  AUFRAUMEN("Aufraumen");
+  NO_DATA("NO DATA"),
+  BELEGT("belegt"),
+  FREI("frei"),
+  REINIGEN("reinigen");
 
   private final String name;
 

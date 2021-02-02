@@ -36,7 +36,4 @@ public class AwningStatusDto {
   public void setSensorValue(String sensorValue) {
     this.sensorValue = sensorValue;
   }
-
- 
-  
 }

@@ -11,4 +11,4 @@ mosquitto_sub -h localhost -u admin -P admin -t iot_etage/instructions
 
 { "id": 0, "action": "Test 3", "oldState": "Test 3", "newState": "State Neu 3", "trigger": "light", "timestamp": "2020-10-10" }
 
-{ "MCUID": 1001, "action": "setThreshold", "success" : "true OR false", "message": "Why it failed." }
+mosquitto_pub -h localhost -u admin -P admin -t iot_etage/instructions/response --message '{ "MCUID": 1001, "action": "setThreshold", "success" : "true", "message": "Why it failed." }'

@@ -3,6 +3,8 @@ package de.thkoeln.syp.iot_etage.controller.dto;
 import java.util.Date;
 import javax.validation.constraints.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class EventDataDto {
 
     private long id;
@@ -20,7 +22,6 @@ public class EventDataDto {
     @NotEmpty(message = "Trigger darf nicht leer sein.")
     private String trigger;
 
-    @NotNull(message = "Timestamp darf nicht leer sein.")
     private Date timestamp;
 
     // Konstruktoren
