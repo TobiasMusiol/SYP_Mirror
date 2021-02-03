@@ -182,10 +182,8 @@ export default {
       this.sendPostRequest(json);
     },
     changeMode() {
-      console.log(
-        `Changing mode to ${this.switch1 ? "automatisch" : "manuell"}`
-      );
-      let targetMode = this.switch1 ? "auto" : "man";
+      console.log(`Changing mode to ${this.switch1 ? "auto" : "manu"}`);
+      let targetMode = this.switch1 ? "auto" : "manu";
       let json = {
         "MCUID": 1003,
         "action": "switchMode",
