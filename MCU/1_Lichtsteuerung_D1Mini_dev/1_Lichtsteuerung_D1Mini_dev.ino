@@ -100,10 +100,10 @@ void sendEventData(String action, String oldState, String newState, String trigg
   docEvent["newState"] = newState;
   docEvent["trigger"] = trigger;
   serializeJson(docEvent, buf);
-  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+  client.publish(MQTT_PUB_EVENT_TOPIC, buf, false);
 
   Serial.print("Published [");
-  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print(MQTT_PUB_EVENT_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
 }
@@ -252,6 +252,11 @@ void setup() {
   client.setCallback(receivedCallback);
   mqtt_connect();
   /***************************NETZWERK_BIS_HIER****************************/
+  //Aktuellen Zustand senden
+  String modeString;
+  if(modus == AUTO) modeString = "AUTOMATIK";
+  else modeString = "MANUEL";
+  sendEventData("INITIAL_MODUS","",modeString,HOSTNAME");
 }
 
 void loop() {

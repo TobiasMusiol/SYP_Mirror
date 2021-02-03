@@ -131,10 +131,10 @@ void sendEventData(String action, String oldState, String newState, String trigg
   docEvent["newState"] = newState;
   docEvent["trigger"] = trigger;
   serializeJson(docEvent, buf);
-  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+  client.publish(MQTT_PUB_EVENT_TOPIC, buf, false);
 
   Serial.print("Published [");
-  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print(MQTT_PUB_EVENT_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
 }
@@ -194,7 +194,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         }
         
         else{
-          sendResponse(action, false, "Room already in State free.");
+          sendResponse(action, false, "Raum bereits im Status frei.");
         }
       }
       
@@ -207,7 +207,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         }
         
         else{
-          sendResponse(action, false, "Room already in State occupied.");
+          sendResponse(action, false, "Raum bereits im Status besetzt.");
         }
         
       }
@@ -221,7 +221,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         }
         
         else{
-          sendResponse(action, false, "Room already in State cleaning.");
+          sendResponse(action, false, "Raum bereits im Status reinigung.");
         }
         
       }
@@ -299,7 +299,8 @@ void setup() {
   display.clearDisplay();
 
   //DISPLAY_INIT_END-------------------------------------------------------------------------------------
-  
+
+  sendEventData("INITIAL_ROOM_STATE","","free",HOSTNAME);
 
 }
 
