@@ -123,7 +123,7 @@ void sendEventData(String action, String oldState, String newState, String trigg
 void sendResponse(String action,bool success, String message){
   char buf[200];
   StaticJsonDocument<200> docResponse;
-  docResponse["UID"] = String(UID);
+  docResponse["MCUID"] = String(UID);
   docResponse["action"] = action;
   docResponse["success"] = success;
   docResponse["message"] = message;
@@ -175,7 +175,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         } 
       }
       //Manuell
-      else if(targetMode == "manu"){
+      else if(targetMode == "man"){
         
         if(modus == MANU){
           sendResponse(action, false,"Bereits im manuellen Modus.");

@@ -142,7 +142,7 @@ void sendEventData(String action, String oldState, String newState, String trigg
 void sendResponse(String action,bool success, String message){
   char buf[200];
   StaticJsonDocument<200> docResponse;
-  docResponse["UID"] = String(UID);
+  docResponse["MCUID"] = String(UID);
   docResponse["action"] = action;
   docResponse["success"] = success;
   docResponse["message"] = message;
@@ -185,7 +185,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
       else if(raumstatus == BELEGT)oldState = "occupied";
       else if(raumstatus == REINIGEN) oldState = "cleaning";
       
-      if(state == "free") {
+      if(state == "frei") {
         
         if(raumstatus != FREI){
           raumstatus = FREI;
@@ -198,7 +198,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         }
       }
       
-      else if(state == "occupied"){
+      else if(state == "belegt"){
         
         if(raumstatus != BELEGT){
           raumstatus = BELEGT;
@@ -212,7 +212,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         
       }
       
-      else if(state == "cleaning"){
+      else if(state == "reinigen"){
         
         if(raumstatus != REINIGEN){
           raumstatus = REINIGEN;
