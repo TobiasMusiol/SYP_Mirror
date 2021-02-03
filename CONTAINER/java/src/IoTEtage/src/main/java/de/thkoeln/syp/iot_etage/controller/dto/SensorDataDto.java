@@ -9,6 +9,7 @@ public class SensorDataDto {
 
   private long id;
   @Positive
+  @JsonProperty("UID")
   private long uid; 
   @NotEmpty
   private String sensorType;
