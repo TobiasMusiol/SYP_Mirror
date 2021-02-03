@@ -4,11 +4,13 @@ import java.util.Date;
 import javax.validation.constraints.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class EventDataDto {
 
     private long id;
     @Positive
+    @JsonProperty("UID")
     private int uid;
     private SensorType sensorType;
     @NotEmpty(message = "Aktion darf nicht leer sein.")

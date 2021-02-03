@@ -7,9 +7,9 @@ mosquitto_pub -h localhost -u admin -P admin -t iot_etage/sensordata --message
 mosquitto_pub -h localhost -u admin -P admin -t iot_etage/eventdata --message
 
 #SensorData
-{ "id": 0, "uid": "1", "sensorType": "air", "payload": "14.6", "timestamp": "2020-10-10" }
+{"UID": "1", "sensorType": "air", "payload": "14.6" }
 
-{ "id": 0, "uid": "1", "sensorType": "LIGHTLEVEL_INDOOR", "payload": "14.6", "timestamp": "2020-10-10" }
+{ "UID": "1", "sensorType": "LIGHTLEVEL_INDOOR", "payload": "14.6" }
 
 
 #EventData
