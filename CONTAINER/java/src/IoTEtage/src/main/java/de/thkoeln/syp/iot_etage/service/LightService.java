@@ -111,6 +111,7 @@ public class LightService {
     }
 
     if (this.instructionResponse == null){
+      this.processingLatch = null;
       return new InstructionResponseDto(this.mcuid, false, "Keine Antwort von MCU");
     }
 

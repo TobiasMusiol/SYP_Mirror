@@ -75,6 +75,7 @@ public class AwningService {
     }
 
     SensorData sensorData = this.sensorRepo.findTopBySensorTypeOrderByTimestampDesc(this.sendorType);
+
     if(sensorData == null){
       awningStatusDto.setSensorValue("0");
     }
@@ -130,6 +131,7 @@ public class AwningService {
     }
 
     if (this.instRes == null){
+      this.processingLatch = null;
       return new InstructionResponseDto(this.mcuid, false, "Keine Antwort von MCU");
     }
 
