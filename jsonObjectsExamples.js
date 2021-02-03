@@ -86,11 +86,20 @@ let json10 = {
 	}
 }
 
+//Raumluftstatus
+let json10 = {
+	'MCUID': 1005,
+	'action': 'setThreshold',
+	'payload': {
+		'threshold': 50
+	}
+}
+
 
 //Antwort Objekt
 let json11 = {
-	'MCUID': 1001,
-	'action': 'setThreshold',
+	'MCUID': 1000,
+	'action': 'setExample',
 	'success' : 'true OR false',
 	'message': 'Why it failed.'
 }

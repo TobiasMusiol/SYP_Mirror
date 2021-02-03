@@ -1,5 +1,4 @@
 #include <Stepper.h>
-#include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
@@ -20,7 +19,7 @@ Stepper myStepper(stepsPerRev, MPIN1, MPIN3, MPIN2, MPIN4);
 
 //Programmzustand
 typedef enum{MANU,AUTO} Modus;
-Modus modus = MANU;
+Modus modus = AUTO;
 
 //Schalter fuer Zustandsaenderung, welche automatisch gesetzt werden
 unsigned short istOben = 1;
@@ -34,6 +33,43 @@ int threshold = 50;
 
 //Sonsiges
 int i = 0;
+
+void motor_abschalten(){
+  digitalWrite(MPIN1, LOW);
+  digitalWrite(MPIN2, LOW);
+  digitalWrite(MPIN3, LOW);
+  digitalWrite(MPIN4, LOW);
+}
+
+//Drives the motor revolution Revolutions 
+//Feeds the Watchdog
+//Markise hoch
+void fahre_hoch(){
+  for(i = 0; i < steps; i++){
+    ESP.wdtFeed();
+    myStepper.step(-1);
+    //Serial.println(i);
+  }
+  motor_abschalten();
+  sendEventData("toogle", "isDown", "isUp", HOSTNAME);
+  istOben = 1;
+  istUnten = 0;
+}
+
+//Drives the motor revolution Revolutions
+//Feeds the Watchdog
+//Markise runter
+void fahre_runter(){
+  for(i = 0; i < steps; i++){
+    ESP.wdtFeed();
+    myStepper.step(1);
+    //Serial.println(i);
+  }
+  motor_abschalten();
+  sendEventData("toogle", "isUp", "isDown", HOSTNAME);
+  istOben = 0;
+  istUnten = 1;
+}
 
 /***************************NETZWERK_VON_HIER****************************/
 
@@ -88,6 +124,7 @@ void mqtt_connect()
   }
 }
 
+
 void sendSensorData(String sensorType, String payload){
   char buf[200];
   docOut["UID"] = UID;
@@ -97,7 +134,7 @@ void sendSensorData(String sensorType, String payload){
   serializeJson(docOut, buf);
   client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
             
-  Serial.print("Published [");
+  Serial.print("\nPublished [");
   Serial.print(MQTT_PUB_DATA_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
@@ -114,7 +151,7 @@ void sendEventData(String action, String oldState, String newState, String trigg
   serializeJson(docEvent, buf);
   client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
 
-  Serial.print("Published [");
+  Serial.print("\nPublished [");
   Serial.print(MQTT_PUB_DATA_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
@@ -131,7 +168,7 @@ void sendResponse(String action, bool success, String message){
   serializeJson(docResponse, buf);
   client.publish(MQTT_PUB_RESPONSE_TOPIC, buf, false);
 
-  Serial.print("Published [");
+  Serial.print("\nPublished [");
   Serial.print(MQTT_PUB_RESPONSE_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
@@ -177,7 +214,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
           sendResponse(action, true, "");
         }
         else{
-          sendResponse(action, false, "Already in Mode auto.");
+          sendResponse(action, false, "Bereits im Automatik Modus.");
         }
         
       }
@@ -189,7 +226,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
           sendResponse(action, true, "");
         }
         else{
-          sendResponse(action, false, "Already in Mode manuell.");
+          sendResponse(action, false, "Bereits im manuellen Modus.");
         }
         
       }
@@ -205,7 +242,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         sendResponse(action, true, "");
       }
       else{
-        sendResponse(action, false, "Threshold value not in Range. Range: 0 - 100%");
+        sendResponse(action, false, "Threshold nicht im Wertebereich (0 - 100%)");
       }
       
     }
@@ -224,7 +261,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
             sendResponse(action, true, "");
           }
           else{
-            sendResponse(action, false, "Awning already up.");
+            sendResponse(action, false, "Markise bereits oben.");
           }
           
         }
@@ -237,22 +274,22 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
             sendResponse(action, true, "");
           }
           else{
-            sendResponse(action, false, "Awning already down.");
+            sendResponse(action, false, "Markise bereits unten.");
           }
        
         }
         else{
-          sendResponse(action, false, "Unknown direction.");
+          sendResponse(action, false, "Unbekannte Richtung.");
         }
         
       }
       else{
-        sendResponse(action, false, "Control is not in manuel Mode.");
+        sendResponse(action, false, "Steuerung nicht im manuellen Modus.");
       }
       
     }
     else{
-      sendResponse(action, false, "Unknown action.");
+      sendResponse(action, false, "Unbekannte Aktion.");
     }
     
   }
@@ -305,86 +342,45 @@ void setup() {
   /***************************NETZWERK_BIS_HIER****************************/  
 }       
 
-void motor_abschalten(){
-  digitalWrite(MPIN1, LOW);
-  digitalWrite(MPIN2, LOW);
-  digitalWrite(MPIN3, LOW);
-  digitalWrite(MPIN4, LOW);
-}
-
-//Drives the motor revolution Revolutions 
-//Feeds the Watchdog
-//Markise hoch
-void fahre_hoch(){
-  for(i = 0; i < steps; i++){
-    ESP.wdtFeed();
-    if (client.connected()) client.loop();
-    myStepper.step(-1);
-    //Serial.println(i);
-  }
-  motor_abschalten();
-  sendEventData("toogle", "isDown", "isUp", HOSTNAME);
-  istOben = 1;
-  istUnten = 0;
-}
-
-//Drives the motor revolution Revolutions
-//Feeds the Watchdog
-//Markise runter
-void fahre_runter(){
-  for(i = 0; i < steps; i++){
-    ESP.wdtFeed();
-    if (client.connected()) client.loop();
-    myStepper.step(1);
-    //Serial.println(i);
-  }
-  motor_abschalten();
-  sendEventData("toogle", "isUp", "isDown", HOSTNAME);
-  istOben = 0;
-  istUnten = 1;
-}
-
-
-
 void loop() {
 
   /***************************NETZWERK_VON_HIER****************************/
   //Verbindung aufbauen, falls keine Verbindung besteht.
-  if (WiFi.status() != WL_CONNECTED){
+  if (WiFi.status() != WL_CONNECTED)
+  {
     Serial.print("Checking wifi");
-    
-    while (WiFi.waitForConnectResult() != WL_CONNECTED){
+    while (WiFi.waitForConnectResult() != WL_CONNECTED)
+    {
       WiFi.begin(SECRET_SSID, SECRET_PASS);
       Serial.print(".");
       delay(10);
     }
-    
     Serial.println("connected");
-  } 
-  else{
-    
-    if(!client.connected()){
+  } else {
+    if (!client.connected())
+    {
       mqtt_connect();
-    } 
-    else{
+    } else {
       client.loop();
     }
-    
   }
   /***************************NETZWERK_BIS_HIER****************************/
 
   //Eingang auslesen
-  //Licht gering => R hoch => U hoch => PWM hoch
-  PWM = analogRead(LIGHT_SENSOR_PIN);
-  PWM = 1023 - PWM;
-  PWM_PC = PWM*100/1023;
-
+    //Licht gering => R hoch => U hoch => PWM hoch
+    PWM = analogRead(LIGHT_SENSOR_PIN);
+    delay(200);
+    PWM = 1023 - PWM;
+    PWM_PC = PWM*100/1023;
+    
   if(millis()-lastMillis > REFRESH_RATE_MS){
+    
     lastMillis = millis();
     sendSensorData("LIGHTLEVEL_OUTDOOR", String(PWM_PC));
   }
 
   if(modus == AUTO){
+    
 
     if(PWM_PC <= threshold && istOben == 1){
       fahre_runter();
