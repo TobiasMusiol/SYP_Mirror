@@ -1,85 +1,49 @@
-#include <Stepper.h>
+#include <SPI.h>
+#include <Wire.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
 #include "secrets.h"
 
-#define LIGHT_SENSOR_PIN A0
-#define motSpeed 10               //Speed in RPM
-#define stepsPerRev 2048          // change this to fit the number of steps per revolution
-#define REVS 2                    //Anz Umdrehungen, um Markise hochzufahren
 
-#define MPIN1 5                   //Motor PIN 1
-#define MPIN2 4                   //Motor PIN 2
-#define MPIN3 0                   //Motor PIN 3
-#define MPIN4 2                   //Motor PIN 4
+//BME280
+float TEMP = 0;
+int TEMP_INT = 0;
+float HUMY_REL = 0;
+float PRES = 0;
+char* temp;
+char* humy;
+char* pres;
+int x = 0;
+#define SEALEVELPRESSURE_HPA (1013.25)
+Adafruit_BME280 bme; // I2C
 
-const int steps = stepsPerRev * REVS;     //Schritte fuer eine Umdrehung
-Stepper myStepper(stepsPerRev, MPIN1, MPIN3, MPIN2, MPIN4);
 
 //Programmzustand
 typedef enum{MANU,AUTO} Modus;
 Modus modus = AUTO;
 
-//Schalter fuer Zustandsaenderung, welche automatisch gesetzt werden
-unsigned short istOben = 1;
-unsigned short istUnten = 0;
-unsigned short up = 0;
-unsigned short down = 0;
-//Eingaenge
+//Luefter
+#define LUEFTER_PIN D5                    //Luefter Pin D5 
+#define PWM_MAX 1023                       //Max Wert fuer PWM
 int PWM = 0;
-int PWM_PC = 0;
-int threshold = 50;
+int PWM_PC =0;
+int threshold = 30;
+int speed_pc = 0;
 
-//Sonsiges
-int i = 0;
-
-void motor_abschalten(){
-  digitalWrite(MPIN1, LOW);
-  digitalWrite(MPIN2, LOW);
-  digitalWrite(MPIN3, LOW);
-  digitalWrite(MPIN4, LOW);
-}
-
-//Drives the motor revolution Revolutions 
-//Feeds the Watchdog
-//Markise hoch
-void fahre_hoch(){
-  for(i = 0; i < steps; i++){
-    ESP.wdtFeed();
-    myStepper.step(-1);
-    //Serial.println(i);
-  }
-  motor_abschalten();
-  sendEventData("toogle", "isDown", "isUp", HOSTNAME);
-  istOben = 1;
-  istUnten = 0;
-}
-
-//Drives the motor revolution Revolutions
-//Feeds the Watchdog
-//Markise runter
-void fahre_runter(){
-  for(i = 0; i < steps; i++){
-    ESP.wdtFeed();
-    myStepper.step(1);
-    //Serial.println(i);
-  }
-  motor_abschalten();
-  sendEventData("toogle", "isUp", "isDown", HOSTNAME);
-  istOben = 0;
-  istUnten = 1;
-}
 
 /***************************NETZWERK_VON_HIER****************************/
 
 //Daten Uebertragung
-#define UID 1002
+#define UID 1003
 #define REFRESH_RATE_MS 10000
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 StaticJsonDocument<200> docOut;
 StaticJsonDocument<200> docIn;
+char buf[200];
 byte mac[6];
 unsigned long lastMillis = 0;
 
@@ -124,8 +88,7 @@ void mqtt_connect()
   }
 }
 
-
-void sendSensorData(String sensorType, String payload){
+void sendSensorData(String sensorType, float payload){
   char buf[200];
   docOut["UID"] = UID;
   docOut["sensorType"] = sensorType;
@@ -134,7 +97,7 @@ void sendSensorData(String sensorType, String payload){
   serializeJson(docOut, buf);
   client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
             
-  Serial.print("\nPublished [");
+  Serial.print("Published [");
   Serial.print(MQTT_PUB_DATA_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
@@ -149,18 +112,18 @@ void sendEventData(String action, String oldState, String newState, String trigg
   docEvent["newState"] = newState;
   docEvent["trigger"] = trigger;
   serializeJson(docEvent, buf);
-  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+  client.publish(MQTT_PUB_EVENT_TOPIC, buf, false);
 
-  Serial.print("\nPublished [");
-  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print("Published [");
+  Serial.print(MQTT_PUB_EVENT_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
 }
 
-void sendResponse(String action, bool success, String message){
+void sendResponse(String action,bool success, String message){
   char buf[200];
   StaticJsonDocument<200> docResponse;
-  docResponse["UID"] = String(UID);
+  docResponse["MCUID"] = String(UID);
   docResponse["action"] = action;
   docResponse["success"] = success;
   docResponse["message"] = message;
@@ -168,16 +131,16 @@ void sendResponse(String action, bool success, String message){
   serializeJson(docResponse, buf);
   client.publish(MQTT_PUB_RESPONSE_TOPIC, buf, false);
 
-  Serial.print("\nPublished [");
+  Serial.print("Published [");
   Serial.print(MQTT_PUB_RESPONSE_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
 }
 
-
-
 void receivedCallback(char* topic, byte* payload, unsigned int length)
 {
+  String response = "";
+  
   Serial.print("Received [");
   Serial.print(topic);
   Serial.print("]: ");
@@ -187,122 +150,122 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
   }
   Serial.println("");
 
+  //Nachricht parsen
   const char* payloadBuffer = (const char*) payload;
   deserializeJson(docIn, payloadBuffer);
   
   int uid = docIn["MCUID"];
   String action = docIn["action"];
-  
-  Serial.println(uid);
-  Serial.println(action);
-  
+ 
   if(uid == UID){
-
-    //Modus einstellen
-    if(action == "switchMode"){
+    //Modus wechslen
+    if(action =="switchMode"){
       String targetMode = docIn["payload"]["targetMode"];
-      String oldState;
       
-      if(modus == AUTO) oldState = "auto";
-      else oldState = "manuell";
-      
+      //Automatik
       if(targetMode == "auto"){
         
-        if(modus != AUTO){
+        if(modus == AUTO){
+          sendResponse(action, false, "Bereits im automatik Modus.");
+        }
+        else{
           modus = AUTO;
-          sendEventData(action, oldState, "auto", "human");
           sendResponse(action, true, "");
+          sendEventData(action,"MANUELL","AUTOMATIK","human");
+        } 
+      }
+      //Manuell
+      else if(targetMode == "man"){
+        
+        if(modus == MANU){
+          sendResponse(action, false,"Bereits im manuellen Modus.");
         }
         else{
-          sendResponse(action, false, "Bereits im Automatik Modus.");
-        }
-        
-      }
-      else if(targetMode == "manu"){
-        
-        if(modus != MANU){
           modus = MANU;
-          sendEventData(action, oldState, "manuell", "human");
           sendResponse(action, true, "");
+          sendEventData(action,"AUTOMATIK","MANUELL","human");
         }
-        else{
-          sendResponse(action, false, "Bereits im manuellen Modus.");
-        }
-        
       }
-      
+      else{
+        sendResponse(action, false,"Unbekannter Zielmodus.");
+      }
     }
-    //Grenzwert einstellen
+    
+    //Threshold setzen
     else if(action == "setThreshold"){
       int threshold_in = docIn["payload"]["threshold"];
       
       if(threshold_in >= 0 && threshold_in <= 100){
-        sendEventData(action, String(threshold), String(threshold_in), "human");
+        sendEventData(action,String(threshold),String(threshold_in),"human");
         threshold = threshold_in;
         sendResponse(action, true, "");
+      }else{
+        sendResponse(action, false, "Threshold nicht im Wertebereich. (0-100°C)");
       }
-      else{
-        sendResponse(action, false, "Threshold nicht im Wertebereich (0 - 100%)");
-      }
-      
     }
-    //Markise schalten
-    else if(action == "toggle"){
-      
+    
+    //Geschwindigkeit setzten
+    else if(action == "setSpeed"){
+      int speed_in = docIn["payload"]["speed"];
       if(modus == MANU){
-        String direction_in = docIn["payload"]["direction"];
-
-        //Hochfahren
-        if(direction_in == "up"){
+        
+        if(speed_in >= 0 && speed_in <=100){
           
-          if(istUnten == 1){
-            up = 1;
-            down = 0;
+          if(modus == MANU){
+            sendEventData(action, String(speed_pc), String(speed_in), "human");
             sendResponse(action, true, "");
+            speed_pc = speed_in;
           }
           else{
-            sendResponse(action, false, "Markise bereits oben.");
+            sendResponse(action, false, "Geschwindigkeit einstellen nur im manuellen Modus möglich.");
           }
           
-        }
-        //Runterfahren
-        else if(direction_in == "down"){
-
-          if(istOben == 1){
-            up = 0;
-            down = 1;
-            sendResponse(action, true, "");
-          }
-          else{
-            sendResponse(action, false, "Markise bereits unten.");
-          }
-       
         }
         else{
-          sendResponse(action, false, "Unbekannte Richtung.");
+          sendResponse(action, false, "Geschwindigkeitsvariable nicht im Wertebereich. (0 - 100%)");
         }
         
       }
       else{
-        sendResponse(action, false, "Steuerung nicht im manuellen Modus.");
+        sendResponse(action, false, "Geschwindigkeit einstellen nur im manuellen Modus möglich.");
       }
       
     }
     else{
       sendResponse(action, false, "Unbekannte Aktion.");
     }
-    
   }
 }
 
 /***************************NETZWERK_BIS_HIER****************************/
 
+
 void setup() {
-  // set the speed at 60 rpm:
-  myStepper.setSpeed(motSpeed);
-  // initialize the serial port:
-  Serial.begin(115200);
+  
+  //Init the serial port communication - to debug the library
+  Serial.begin(115200); //Init serial port
   if(!Serial) delay(500);
+
+
+  /*******************************BME180_INIT_START****************************************/  
+  Serial.println(F("BME280 test"));
+    unsigned status;
+    
+    // default settings
+    status = bme.begin(0x76);  
+    // You can also pass in a Wire library object like &Wire2
+    //status = bme.begin(0x76, &Wire2)
+    if (!status) {
+        Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
+        Serial.print("SensorID was: 0x"); Serial.println(bme.sensorID(),16);
+        Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
+        Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
+        Serial.print("        ID of 0x60 represents a BME 280.\n");
+        Serial.print("        ID of 0x61 represents a BME 680.\n");
+        while (1) delay(10);
+    }
+
+  /*******************************BME180_INIT_END****************************************/
 
   /***************************NETZWERK_VON_HIER****************************/
   Serial.print("Attempting to connect to SSID: ");
@@ -339,75 +302,90 @@ void setup() {
   client.setServer(MQTT_HOST, MQTT_PORT);
   client.setCallback(receivedCallback);
   mqtt_connect();
-  /***************************NETZWERK_BIS_HIER****************************/  
-}       
+  /***************************NETZWERK_BIS_HIER****************************/
+  //Aktuellen Zustand senden
+  String modeString;
+  if(modus == AUTO) modeString = "AUTOMATIK";
+  else modeString = "MANUEL";
+  sendEventData("INITIA_MODUS","",modeString,HOSTNAME);
+}
 
 void loop() {
 
   /***************************NETZWERK_VON_HIER****************************/
   //Verbindung aufbauen, falls keine Verbindung besteht.
-  if (WiFi.status() != WL_CONNECTED)
-  {
+  if (WiFi.status() != WL_CONNECTED){
     Serial.print("Checking wifi");
-    while (WiFi.waitForConnectResult() != WL_CONNECTED)
-    {
+    while (WiFi.waitForConnectResult() != WL_CONNECTED){
       WiFi.begin(SECRET_SSID, SECRET_PASS);
       Serial.print(".");
       delay(10);
     }
     Serial.println("connected");
-  } else {
-    if (!client.connected())
-    {
+  } 
+  else{
+    if(!client.connected()){
       mqtt_connect();
-    } else {
+    } 
+    else{
       client.loop();
     }
   }
   /***************************NETZWERK_BIS_HIER****************************/
 
-  //Eingang auslesen
-    //Licht gering => R hoch => U hoch => PWM hoch
-    PWM = analogRead(LIGHT_SENSOR_PIN);
-    delay(200);
-    PWM = 1023 - PWM;
-    PWM_PC = PWM*100/1023;
-    
+  //Luftdaten ans Backend senden
   if(millis()-lastMillis > REFRESH_RATE_MS){
-    
     lastMillis = millis();
-    sendSensorData("LIGHTLEVEL_OUTDOOR", String(PWM_PC));
-  }
 
-  if(modus == AUTO){
+    TEMP = bme.readTemperature();
+    TEMP_INT = TEMP;
+    PRES = bme.readPressure()/100.0F;
+    HUMY_REL = bme.readHumidity();
     
-
-    if(PWM_PC <= threshold && istOben == 1){
-      fahre_runter();
-    }
-    else if(PWM_PC > threshold && istUnten == 1){
-      fahre_hoch();
-    }
-    else{
-      motor_abschalten();
-    }
-      
+    //printValues();
+    sendSensorData("TEMPERATURE",TEMP);
+    sendSensorData("HUMIDITY_RELATIVE",HUMY_REL);
+    sendSensorData("AIRPRESSURE",PRES);
   }
+
+  if(modus == AUTO){ 
+    if(TEMP_INT > threshold){
+      analogWrite(LUEFTER_PIN,PWM_MAX);
+      //Serial.println("Luefter an.");
+    }else{
+      analogWrite(LUEFTER_PIN,0);
+      //Serial.println("Luefter aus.");
+    }
+  }
+  //Manueller Modus
   else{
-    
-    if(down == 1){
-      fahre_runter();
-      down = 0;
-    }
-    else if(up == 1){
-      fahre_hoch();
-      up = 0;
-    }
-    else{
-      motor_abschalten();
-    }
-    
+    PWM = speed_pc*PWM_MAX/100;
+    if(PWM > PWM_MAX) PWM = PWM_MAX;
+    else if(PWM < 0)PWM = 0;
+    analogWrite(LUEFTER_PIN,PWM); 
   }
-  
 
+}
+
+
+
+void printValues() {
+    Serial.print("Temperature = ");
+    Serial.print(bme.readTemperature());
+    Serial.println(" *C");
+
+    Serial.print("Pressure = ");
+
+    Serial.print(bme.readPressure() / 100.0F);
+    Serial.println(" hPa");
+
+    Serial.print("Approx. Altitude = ");
+    Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
+    Serial.println(" m");
+
+    Serial.print("Humidity = ");
+    Serial.print(bme.readHumidity());
+    Serial.println(" %");
+
+    Serial.println();
 }

@@ -9,16 +9,21 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 /**
  * Event beinhaltet die Zustandänderungen des Mikrokontrollers
  */
-@Entity(name = "iot_etage_eventdata")
+@Entity
 @Table(name = "iot_etage_eventdata")
 public class EventData {
   @Id
   @Column(name = "id")
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long eventId;
+
+  @Column(name = "uid")
+  private int uid;
 
   @Column(name = "action")
   private String action;
@@ -32,11 +37,16 @@ public class EventData {
   @Column(name = "trigger")
   private String trigger;
 
-  @Column(name = "timestamp")
+  @JsonFormat(pattern = "dd.MM.yyyy, HH:mm:ss")
+  @Column(
+    name = "timestamp",
+    nullable=true
+  )
   private Date timestamp;
 
   // Konstruktoren
-  public EventData(String action, String oldState, String newStage, String trigger, Date timestamp) {
+  public EventData(int uid, String action, String oldState, String newStage, String trigger, Date timestamp) {
+    this.uid = uid;
     this.action = action;
     this.oldState = oldState;
     this.newState = newStage;
@@ -93,5 +103,13 @@ public class EventData {
 
   public void setTimestamp(Date timestamp) {
     this.timestamp = timestamp;
+  }
+
+  public int getUid() {
+    return uid;
+  }
+
+  public void setUid(int uid) {
+    this.uid = uid;
   }
 }

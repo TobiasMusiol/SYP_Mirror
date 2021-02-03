@@ -131,10 +131,10 @@ void sendEventData(String action, String oldState, String newState, String trigg
   docEvent["newState"] = newState;
   docEvent["trigger"] = trigger;
   serializeJson(docEvent, buf);
-  client.publish(MQTT_PUB_DATA_TOPIC, buf, false);
+  client.publish(MQTT_PUB_EVENT_TOPIC, buf, false);
 
   Serial.print("Published [");
-  Serial.print(MQTT_PUB_DATA_TOPIC);
+  Serial.print(MQTT_PUB_EVENT_TOPIC);
   Serial.print("]: ");
   Serial.println(buf);
 }
@@ -142,7 +142,7 @@ void sendEventData(String action, String oldState, String newState, String trigg
 void sendResponse(String action,bool success, String message){
   char buf[200];
   StaticJsonDocument<200> docResponse;
-  docResponse["UID"] = String(UID);
+  docResponse["MCUID"] = String(UID);
   docResponse["action"] = action;
   docResponse["success"] = success;
   docResponse["message"] = message;
@@ -185,7 +185,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
       else if(raumstatus == BELEGT)oldState = "occupied";
       else if(raumstatus == REINIGEN) oldState = "cleaning";
       
-      if(state == "free") {
+      if(state == "frei") {
         
         if(raumstatus != FREI){
           raumstatus = FREI;
@@ -194,11 +194,11 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         }
         
         else{
-          sendResponse(action, false, "Room already in State free.");
+          sendResponse(action, false, "Raum bereits im Status frei.");
         }
       }
       
-      else if(state == "occupied"){
+      else if(state == "belegt"){
         
         if(raumstatus != BELEGT){
           raumstatus = BELEGT;
@@ -207,12 +207,12 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         }
         
         else{
-          sendResponse(action, false, "Room already in State occupied.");
+          sendResponse(action, false, "Raum bereits im Status besetzt.");
         }
         
       }
       
-      else if(state == "cleaning"){
+      else if(state == "reinigen"){
         
         if(raumstatus != REINIGEN){
           raumstatus = REINIGEN;
@@ -221,7 +221,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         }
         
         else{
-          sendResponse(action, false, "Room already in State cleaning.");
+          sendResponse(action, false, "Raum bereits im Status reinigung.");
         }
         
       }
@@ -299,7 +299,8 @@ void setup() {
   display.clearDisplay();
 
   //DISPLAY_INIT_END-------------------------------------------------------------------------------------
-  
+
+  sendEventData("INITIAL_ROOM_STATE","","free",HOSTNAME);
 
 }
 

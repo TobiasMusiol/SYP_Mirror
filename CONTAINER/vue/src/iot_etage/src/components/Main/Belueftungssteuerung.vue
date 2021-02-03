@@ -110,11 +110,21 @@ export default {
       if (response.status === 200) {
         const data = await response.json();
         console.log(data);
+
+        if (data.state === "AUTO") {
+          //true = Auto, false = Man
+          this.switch1 = true;
+        } else if (data.state === "MAN") {
+          this.switch1 = false;
+        } else {
+          this.switch1 = true;
+        }
+
         this.sensorValue = data.sensorValue;
       } else {
         this.$store.commit("toggleAlert", {
           alertType: "info",
-          alertMessage: "Fehler beim Post Request",
+          alertMessage: "Fehler beim GET Request",
           showAlert: true,
         });
       }
@@ -172,10 +182,8 @@ export default {
       this.sendPostRequest(json);
     },
     changeMode() {
-      console.log(
-        `Changing mode to ${this.switch1 ? "automatisch" : "manuell"}`
-      );
-      let targetMode = this.switch1 ? "auto" : "man";
+      console.log(`Changing mode to ${this.switch1 ? "auto" : "manu"}`);
+      let targetMode = this.switch1 ? "auto" : "manu";
       let json = {
         "MCUID": 1003,
         "action": "switchMode",

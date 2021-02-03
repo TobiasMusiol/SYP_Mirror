@@ -5,10 +5,10 @@ public enum State{
   AUTO("auto"),
   MAN("man");
   
-  private final String name;
+  private final String value;
 
   //Konstruktor
   private State(String name){
-    this.name = name;
+    this.value = name;
   }
 }

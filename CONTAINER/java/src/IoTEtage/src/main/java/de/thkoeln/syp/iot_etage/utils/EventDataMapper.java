@@ -1,5 +1,7 @@
 package de.thkoeln.syp.iot_etage.utils;
 
+import java.util.Date;
+
 import de.thkoeln.syp.iot_etage.controller.dto.EventDataDto;
 import de.thkoeln.syp.iot_etage.domain.entity.EventData;
 
@@ -19,11 +21,13 @@ public class EventDataMapper {
 
     public static EventData convertEventDataDtoToEventData(EventDataDto evntDto){
         EventData event = new EventData(
+            evntDto.getUid(),
             evntDto.getAction(),
             evntDto.getOldState(),
             evntDto.getNewState(),
             evntDto.getTrigger(),
-            evntDto.getTimestamp()
+            //evntDto.getTimestamp()
+            new Date()
         );
         event.setEventId(evntDto.getId());
         

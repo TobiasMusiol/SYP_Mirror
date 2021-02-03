@@ -5,7 +5,10 @@ import java.util.Map;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class InstructionDto {
+  @JsonProperty("MCUID")
   private int mcuid;
   @NotEmpty
   private String action;

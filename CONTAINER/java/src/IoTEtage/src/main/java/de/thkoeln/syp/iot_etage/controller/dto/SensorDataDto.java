@@ -5,10 +5,13 @@ import java.util.Date;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class SensorDataDto {
 
   private long id;
   @Positive
+  @JsonProperty("UID")
   private long uid; 
   @NotEmpty
   private String sensorType;

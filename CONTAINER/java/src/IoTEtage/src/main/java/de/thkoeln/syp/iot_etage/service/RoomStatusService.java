@@ -1,5 +1,6 @@
 package de.thkoeln.syp.iot_etage.service;
 
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -28,6 +29,7 @@ public class RoomStatusService {
   
   private final int mcuid = 1004;
   private final String sensorType = "roomstatus";
+  private final String action = "setState";
   private CountDownLatch processingLatch;
   private InstructionResponseDto instructionResponseDto;
 
@@ -52,11 +54,11 @@ public class RoomStatusService {
   public RoomStatusDto getCurrentRoomStatus(){
     RoomStatusDto roomStatusDto = new RoomStatusDto();
 
-    EventData eventData = this.eventRepository.findTopByTriggerOrderByTimestampDesc(this.sensorType);
+    EventData eventData = this.eventRepository.findTopByUidAndActionOrderByTimestampDesc(this.mcuid, this.action);
     if (eventData == null) {
       roomStatusDto.setRoomModus(RoomModus.NO_DATA);
     } else {
-      roomStatusDto.setRoomModus(this.roomStatus.getRoomModus());
+      roomStatusDto.setRoomModus(RoomModus.valueOf(eventData.getNewState().toUpperCase()));
     }
 
     return roomStatusDto;
@@ -71,8 +73,18 @@ public class RoomStatusService {
     Authentication auth = context.getAuthentication();
     UserPrincipal userPrincial = (UserPrincipal) auth.getPrincipal();
 
+    //Debu 
+    String test1 = instrDto.getAction();
+    Object test2 = instrDto.getPayload().get("state");
+
+
+
+
+
+
+    //Debug Ende 
     if (
-      (instrDto.getAction() == "setState" && instrDto.getPayload().get("state") == "frei")
+      (instrDto.getAction().equals("setState") && instrDto.getPayload().get("state").equals("frei"))
       &&
       (userPrincial.getUser().getAppRole() == AppRole.ADMIN || userPrincial.getUser().getAppRole() == AppRole.FACILITY_MANAGER)
     ){
@@ -101,7 +113,11 @@ public class RoomStatusService {
         jsonString = objMapper.writeValueAsString(instrDto);
       } catch (JsonProcessingException e) {
         e.printStackTrace();
-        return this.instructionResponseDto;
+        return new InstructionResponseDto(this.mcuid, false, "Falsches Instruction Format");
+      }
+
+      if(this.processingLatch != null && this.processingLatch.getCount() > 0){
+        return new InstructionResponseDto(this.mcuid, false, "Andere Instruction wird ausgeführt");
       }
 
       this.processingLatch = new CountDownLatch(1);
@@ -112,7 +128,7 @@ public class RoomStatusService {
       } catch (InterruptedException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
-        return this.instructionResponseDto;
+        return new InstructionResponseDto(this.mcuid, false, "Interrupt Fehler auf dem Server");
       }
 
       this.roomStatus.setRoomModus((RoomModus)instrDto.getPayload().get("state"));
@@ -121,10 +137,13 @@ public class RoomStatusService {
         this.roomStatus.setRoomModus((RoomModus) instrDto.getPayload().get("state"));
       }
 
-      return this.instructionResponseDto;
+      if (this.instructionResponseDto == null){
+        this.processingLatch = null;
+        return new InstructionResponseDto(this.mcuid, false, "Keine Antwort von MCU");
+      }
     }
 
-    return null;
+    return this.instructionResponseDto;
   }
 
   //Helper Funktions

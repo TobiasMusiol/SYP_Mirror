@@ -33,7 +33,9 @@ public class AwningService {
   private static final Logger logger = LoggerFactory.getLogger(AwningService.class);
 
   private final int mcuid = 1002;
-  private final String sendorType = "LIGHT_OUTSIDE";
+  private final String sendorType = "LIGHTLEVEL_OUTDOOR";
+  private final String action="switchMode";
+
   private CountDownLatch processingLatch;
   private InstructionResponseDto instRes;
 
@@ -64,7 +66,7 @@ public class AwningService {
   public AwningStatusDto getCurrentState(){
     AwningStatusDto awningStatusDto = new AwningStatusDto();
 
-    EventData eventData = this.eventRepo.findTopByTriggerOrderByTimestampDesc(this.sendorType);
+    EventData eventData = this.eventRepo.findTopByUidAndActionOrderByTimestampDesc(this.mcuid, this.action);
     if(eventData == null){
       awningStatusDto.setState(State.NO_DATA);
     }
@@ -73,6 +75,7 @@ public class AwningService {
     }
 
     SensorData sensorData = this.sensorRepo.findTopBySensorTypeOrderByTimestampDesc(this.sendorType);
+
     if(sensorData == null){
       awningStatusDto.setSensorValue("0");
     }
@@ -100,11 +103,12 @@ public class AwningService {
     } catch (JsonProcessingException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-      return null;
+      return new InstructionResponseDto(this.mcuid, false, "Falsches Instruction Format");
+
     }
 
-    if(this.processingLatch != null){
-      return null;
+    if(this.processingLatch != null && this.processingLatch.getCount() > 0){
+      return new InstructionResponseDto(this.mcuid, false, "Andere Instruction wird ausgeführt");
     }
 
     this.processingLatch = new CountDownLatch(1);
@@ -115,7 +119,7 @@ public class AwningService {
     } catch (InterruptedException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-      return null;
+      return new InstructionResponseDto(this.mcuid, false, "Keine Antwort von MCU");
     }
 
     try {
@@ -123,11 +127,12 @@ public class AwningService {
     } catch (InterruptedException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-      return null;
+      return new InstructionResponseDto(this.mcuid, false, "Interrupt Fehler auf dem Server");
     }
 
-    if(instrDto.getAction() == "switchMode"){
-      this.awningStatus.setState((State) instrDto.getPayload().get("targetMode"));
+    if (this.instRes == null){
+      this.processingLatch = null;
+      return new InstructionResponseDto(this.mcuid, false, "Keine Antwort von MCU");
     }
 
     return this.instRes;
@@ -138,6 +143,5 @@ public class AwningService {
     System.out.println("YES!!! InstructionResponse Recieved");
     this.instRes = instRes;
     this.processingLatch.countDown();
-    this.processingLatch = null;
   }
 }

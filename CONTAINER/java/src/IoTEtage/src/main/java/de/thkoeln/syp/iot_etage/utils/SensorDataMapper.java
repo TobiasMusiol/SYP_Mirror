@@ -13,7 +13,7 @@ public class SensorDataMapper {
   public static SensorData convertSensorDataDtoToSensorData(SensorDataDto sensorDataDto){
     return new SensorData(
       sensorDataDto.getId(),
-      0,
+      sensorDataDto.getUid(),
       sensorDataDto.getSensorType(),
       sensorDataDto.getPayload(),
       new Date()

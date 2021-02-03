@@ -11,7 +11,7 @@ ALTER ROLE iot_etage_blau_admin SET timezone TO 'UTC';
 
 create table IF NOT EXISTS "iot_etage_sensordata" (
   id serial PRIMARY KEY, 
-  "uid" varchar(30) NOT NULL, 
+  "uid" integer NOT NULL, 
   "sensortype" varchar(30) NOT NULL, 
   "payload" varchar(30) NOT NULL, 
   "timestamp" timestamp NOT NULL DEFAULT NOW()
@@ -19,11 +19,12 @@ create table IF NOT EXISTS "iot_etage_sensordata" (
 
 create table IF NOT EXISTS "iot_etage_eventdata" (
   id serial PRIMARY KEY, 
+  "uid" integer NOT NULL,
   "action" varchar(30) NOT NULL, 
   "oldstate" varchar(30) NOT NULL, 
   "newstate" varchar(30) NOT NULL, 
   "trigger" varchar(30) NOT NULL, 
-  "timestamp" timestamp NOT NULL DEFAULT NOW()
+  "timestamp" timestamp DEFAULT NOW()
 );
 
 create table IF NOT EXISTS

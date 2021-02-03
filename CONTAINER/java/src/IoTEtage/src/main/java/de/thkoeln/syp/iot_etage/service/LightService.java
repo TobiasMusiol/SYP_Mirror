@@ -31,7 +31,8 @@ public class LightService {
   private static final Logger logger = LoggerFactory.getLogger(LightService.class);
 
   private final int mcuid = 1001;
-  private final String sensorType = "LIGHT_INSIDE";
+  private final String sensorType = "LIGHTLEVEL_INDOOR";
+  private final String action="switchMode";
   private CountDownLatch processingLatch;
   private InstructionResponseDto instructionResponse;
 
@@ -53,12 +54,12 @@ public class LightService {
   public LightStatusDto getStatus(){
     LightStatusDto lightStatusDto = new LightStatusDto();
 
-    EventData eventData = this.eventRepository.findTopByTriggerOrderByTimestampDesc(this.sensorType);
+    EventData eventData = this.eventRepository.findTopByUidAndActionOrderByTimestampDesc(this.mcuid, this.action);
     if (eventData == null){
       lightStatusDto.setState(State.NO_DATA);
     }
     else{
-      lightStatusDto.setState(this.lightStatus.getState());
+      lightStatusDto.setState(State.valueOf( eventData.getNewState().toUpperCase()));
     }
 
     SensorData sensorData = this.sensorRepository.findTopBySensorTypeOrderByTimestampDesc(this.sensorType); 
@@ -70,7 +71,7 @@ public class LightService {
     }
 
     return lightStatusDto;
-  }  
+  }
 
   /**
    * 
@@ -89,14 +90,13 @@ public class LightService {
     try {
       jsonString = objMapper.writeValueAsString(instructionDto);
     } catch (JsonProcessingException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
-      return null;
+      return new InstructionResponseDto(this.mcuid, false, "Falsches Instruction Format");
     }
 
 
-    if(this.processingLatch != null){
-      return null;
+    if(this.processingLatch != null && this.processingLatch.getCount() > 0){
+      return new InstructionResponseDto(this.mcuid, false, "Andere Instruction wird ausgeführt");
     }
 
     this.processingLatch = new CountDownLatch(1);
@@ -107,11 +107,12 @@ public class LightService {
     } catch (InterruptedException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-      return null;
+      return new InstructionResponseDto(this.mcuid, false, "Interrupt Fehler auf dem Server");
     }
 
-    if(instructionDto.getAction() == "switchMode"){
-      this.lightStatus.setState((State) instructionDto.getPayload().get("targetMode"));
+    if (this.instructionResponse == null){
+      this.processingLatch = null;
+      return new InstructionResponseDto(this.mcuid, false, "Keine Antwort von MCU");
     }
 
     return this.instructionResponse;
@@ -124,6 +125,5 @@ public class LightService {
     System.out.println("YES!!! InstructionResponse Recieved");
     this.instructionResponse = instrRes;
     this.processingLatch.countDown();
-    this.processingLatch = null;
   }
 }

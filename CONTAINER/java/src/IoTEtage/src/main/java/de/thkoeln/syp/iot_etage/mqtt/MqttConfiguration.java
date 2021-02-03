@@ -54,7 +54,7 @@ public class MqttConfiguration {
   public MessageProducer inboundSendorData() {
     String clientId = "Java_" + UUID.randomUUID().toString();
     MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(clientId,
-        this.mqttClientFactory(), "iot_etage/sensordata");
+        this.mqttClientFactory(), "/iot_etage/sensordata");
     adapter.setCompletionTimeout(5000);
     adapter.setConverter(new DefaultPahoMessageConverter());
     adapter.setQos(1);
@@ -80,7 +80,7 @@ public class MqttConfiguration {
   public MessageProducer inboundEventdata() {
     String clientId = "Java_" + UUID.randomUUID().toString();
     MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(clientId,
-        this.mqttClientFactory(), "iot_etage/eventdata");
+        this.mqttClientFactory(), "/iot_etage/eventdata");
     adapter.setCompletionTimeout(5000);
     adapter.setConverter(new DefaultPahoMessageConverter());
     adapter.setQos(1);
@@ -106,7 +106,7 @@ public class MqttConfiguration {
   public MessageProducer inboundInstructionResponse() {
     String clientId = "Java_" + UUID.randomUUID().toString();
     MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(clientId,
-        this.mqttClientFactory(), "iot_etage/instructions/response");
+        this.mqttClientFactory(), "/iot_etage/instructions/response");
     adapter.setCompletionTimeout(5000);
     adapter.setConverter(new DefaultPahoMessageConverter());
     adapter.setQos(1);
@@ -135,7 +135,7 @@ public class MqttConfiguration {
     String clientId = "Java_" + UUID.randomUUID().toString();
     MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler(clientId, mqttClientFactory());
     messageHandler.setAsync(true);
-    messageHandler.setDefaultTopic("iot_etage/instructions");
+    messageHandler.setDefaultTopic("/iot_etage/instructions");
     return messageHandler;
   }
 
