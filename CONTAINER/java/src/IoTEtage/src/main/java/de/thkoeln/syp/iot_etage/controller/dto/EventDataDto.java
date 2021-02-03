@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class EventDataDto {
 
     private long id;
+    @Positive
     private int uid;
     private SensorType sensorType;
     @NotEmpty(message = "Aktion darf nicht leer sein.")
@@ -21,7 +22,7 @@ public class EventDataDto {
 
     @NotEmpty(message = "Trigger darf nicht leer sein.")
     private String trigger;
-
+    
     private Date timestamp;
 
     // Konstruktoren

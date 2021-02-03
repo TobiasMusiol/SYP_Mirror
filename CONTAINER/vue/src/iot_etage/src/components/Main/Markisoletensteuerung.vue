@@ -34,12 +34,10 @@
                       <v-col cols="6">
                         <v-switch
                           v-model="aufzu"
-                          :label="`${
-                            aufzu.toString() == 'true' ? 'Auf' : 'Zu'
-                          }`"
+                          :label="`${aufzu ? 'Auf' : 'Zu'}`"
                           thumb-label
                           ticks
-                          append-icon="mdi-format-align-justify"
+                          append-icon="mdi-format-align-middle"
                           @change="setAufZu"
                         ></v-switch>
                       </v-col>
@@ -66,7 +64,7 @@
             </v-list-item-content>
 
             <v-list-item-avatar tile size="80" color="grey">
-              <v-icon color="blue" x-large> fas fa-align-justify </v-icon>
+              <v-icon color="blue" x-large> fas fa-arrows-alt-v </v-icon>
             </v-list-item-avatar>
           </v-list-item>
         </v-card>
@@ -89,6 +87,48 @@ export default {
       threshold: 20,
     };
   },
+
+  mounted: async function () {
+    let response = null;
+    let data = null;
+    try {
+      response = await fetch(`${config.urls.backend.base}/${this.appName}`, {
+        method: "get",
+        headers: {
+          ...config.headers,
+          "Authorization": localStorage.getItem("user-token"),
+        },
+      });
+    } catch (e) {
+      this.$store.commit("toggleAlert", {
+        alertType: "info",
+        alertMessage: "Fehler beim GET Request",
+        showAlert: true,
+      });
+      return;
+    }
+
+    if (response.status === 200) {
+      data = await response.json();
+      console.log(data);
+      if (data.state === "AUTO") {
+        //true = Auto, false = Man
+        this.switch1 = true;
+      } else if (data.state === "MAN") {
+        this.switch1 = false;
+      } else {
+        this.switch1 = true;
+      }
+
+      this.sensorValue = data.sensorValue;
+    } else {
+      this.$store.commit("toggleAlert", {
+        alertType: "info",
+        alertMessage: "Fehler beim Post Request",
+        showAlert: true,
+      });
+    }
+  },
   methods: {
     sendPostRequest(jsonObj) {
       fetch(`${config.urls.backend.base}/${this.appName}`, {
@@ -98,10 +138,16 @@ export default {
           "Authorization": localStorage.getItem("user-token"),
         },
         body: JSON.stringify(jsonObj),
-      }).then((response) => {
+      }).then(async (response) => {
         if (response.status === 200) {
           //TODO Richtigen Response auswerten
           console.log("success");
+          const data = await response.json();
+          this.$store.commit("toggleAlert", {
+            alertType: "info",
+            alertMessage: data.message,
+            showAlert: true,
+          });
         } else {
           this.$store.commit("toggleAlert", {
             alertType: "info",

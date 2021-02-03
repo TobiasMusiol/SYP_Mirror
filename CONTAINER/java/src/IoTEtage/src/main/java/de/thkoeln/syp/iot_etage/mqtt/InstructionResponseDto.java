@@ -2,6 +2,8 @@ package de.thkoeln.syp.iot_etage.mqtt;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.aspectj.apache.bcel.generic.Instruction;
+
 public class InstructionResponseDto {
   // 'MCUID': 1001,
   @JsonProperty("MCUID")
@@ -12,6 +14,15 @@ public class InstructionResponseDto {
   private boolean success;
   // 'message': 'Why it failed.'
   private String message;
+
+  public InstructionResponseDto(){}
+
+  public InstructionResponseDto(int mcuid, boolean success, String errorMessage){
+    this.MCUID = mcuid;
+    this.action = null;
+    this.success = success;
+    this.message = errorMessage;
+  }
   
   public int getMCUID() {
     return MCUID;

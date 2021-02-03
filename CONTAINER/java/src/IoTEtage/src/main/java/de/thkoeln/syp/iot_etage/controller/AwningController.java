@@ -60,11 +60,12 @@ public class AwningController {
     InstructionResponseDto instrResponse = this.awningService.changeState(instructionDto);
 
     if (instrResponse != null){
-      response.setHttpStatus(HttpStatus.OK);
       if(instrResponse.isSuccess()){
+        response.setHttpStatus(HttpStatus.OK);
         response.setMessage("Ändrung erfolgrech angewandt"); 
       }
-      {
+      else {
+        response.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         response.setMessage("Änderung nicht ausgeführt: " + instrResponse.getMessage()); 
       }
 

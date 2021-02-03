@@ -28,6 +28,8 @@ public class AirService {
 
   private final int mcuid = 1003;
   private final String sensorType = "AIRQUALITY";
+  private final String action = "switchMode";
+
   private CountDownLatch processingLatch;
   private InstructionResponseDto instructionResponseDto;
 
@@ -59,11 +61,11 @@ public class AirService {
   public AirStatusDto getCurrentState() {
     AirStatusDto airStatusDto = new AirStatusDto();
 
-    EventData eventData = this.eventRepository.findTopByTriggerOrderByTimestampDesc(this.sensorType);
+    EventData eventData = this.eventRepository.findTopByUidAndActionOrderByTimestampDesc(this.mcuid, this.action);
     if (eventData == null) {
       airStatusDto.setState(State.NO_DATA);
     } else {
-      airStatusDto.setState(this.airStatus.getState());
+      airStatusDto.setState(State.valueOf(eventData.getNewState().toUpperCase()));
     }
 
     SensorData sensorData = this.sensorRepository.findTopBySensorTypeOrderByTimestampDesc(this.sensorType);
@@ -96,11 +98,11 @@ public class AirService {
       jsonString = objMapper.writeValueAsString(instructionDto);
     } catch (JsonProcessingException e) {
       e.printStackTrace();
-      return this.instructionResponseDto;
+      return new InstructionResponseDto(this.mcuid, false, "Falsches Instruction Format");
     }
 
-    if(this.processingLatch != null){
-      return this.instructionResponseDto;
+    if(this.processingLatch != null && this.processingLatch.getCount() > 0){
+      return new InstructionResponseDto(this.mcuid, false, "Andere Instruction wird ausgeführt");
     }
 
     this.processingLatch = new CountDownLatch(1);
@@ -111,11 +113,12 @@ public class AirService {
     } catch (InterruptedException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-      return this.instructionResponseDto;
+      return new InstructionResponseDto(this.mcuid, false, "Interrupt Fehler auf dem Server");
     }
 
-    if(instructionDto.getAction() == "switchMode"){
-      this.airStatus.setState((State) instructionDto.getPayload().get("targetMode"));
+    if (this.instructionResponseDto == null){
+      this.processingLatch = null;
+      return new InstructionResponseDto(this.mcuid, false, "Keine Antwort von MCU");
     }
   
     return this.instructionResponseDto;
@@ -128,7 +131,5 @@ public class AirService {
       System.out.println("YES!!! InstructionResponse Recieved");
       this.instructionResponseDto = instResponseDto;
       this.processingLatch.countDown();
-      this.processingLatch = null;
-
     }
 }
