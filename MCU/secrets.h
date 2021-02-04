@@ -15,3 +15,4 @@
 #define MQTT_SUB_TOPIC "/iot_etage/instructions"
 #define MQTT_PUB_DATA_TOPIC "/iot_etage/sensordata"
 #define MQTT_PUB_RESPONSE_TOPIC "/iot_etage/instructions/response"
+#define MQTT_PUB_EVENT_TOPIC "/iot_etage/eventdata"

@@ -111,7 +111,7 @@ void sendEventData(String action, String oldState, String newState, String trigg
 void sendResponse(String action, bool success, String message){
   char buf[200];
   StaticJsonDocument<200> docResponse;
-  docResponse["UID"] = String(UID);
+  docResponse["MCUID"] = String(UID);
   docResponse["action"] = action;
   docResponse["success"] = success;
   docResponse["message"] = message;
@@ -178,6 +178,8 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
           sendResponse(action, false, "Bereits im manuellen Modus.");
         }
         
+      }else{
+        sendResponse(action, false, "Unbekannter Zustand.");
       }
       
     }
@@ -256,7 +258,7 @@ void setup() {
   String modeString;
   if(modus == AUTO) modeString = "AUTOMATIK";
   else modeString = "MANUEL";
-  sendEventData("INITIAL_MODUS","",modeString,HOSTNAME");
+  sendEventData("INITIAL_MODUS","",modeString,HOSTNAME);
 }
 
 void loop() {

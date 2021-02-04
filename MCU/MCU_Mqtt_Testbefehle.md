@@ -13,6 +13,10 @@ SENSORDATEN MITHÖREN:
 
     mosquitto_sub -h localhost -p 1883 -u admin -P admin -t /iot_etage/sensordata
 
+EVENTDATA MITHÖREN:
+
+    mosquitto_sub -h localhost -p 1883 -u admin -P admin -t /iot_etage/eventdata
+
 BEFEHLE MITHÖREN:
 
     mosquitto_sub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions
@@ -21,6 +25,9 @@ ANTWORTEN MITHÖREN
 
     mosquitto_sub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions/response
 
+RESPONSE SENSEN:
+
+    mosquitto_pub -h localhost -p 1883 -u admin -P admin -t /iot_etage/instructions --message "{\"UID\":1003,\"action\":\"switchMode\",\"success\":\"true\", \"message\":\"\"}"
 
 BEFEHLE SENDEN:
 
