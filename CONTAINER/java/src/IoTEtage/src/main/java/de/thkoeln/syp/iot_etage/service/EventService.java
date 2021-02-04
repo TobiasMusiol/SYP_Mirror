@@ -86,9 +86,12 @@ public class EventService {
      * @return EventDataDto
      */
     public EventDataDto createEvent(EventDataDto newEventDataDto){
-      EventData newEventData = EventDataMapper.convertEventDataDtoToEventData(newEventDataDto);
-      newEventData = this.eventRepository.save(newEventData);      
-      newEventDataDto = EventDataMapper.convertEventDataToEventDataDto(newEventData);
+      if(newEventDataDto != null){
+
+        EventData newEventData = EventDataMapper.convertEventDataDtoToEventData(newEventDataDto);
+        newEventData = this.eventRepository.save(newEventData);      
+        newEventDataDto = EventDataMapper.convertEventDataToEventDataDto(newEventData);
+      }
 
       return newEventDataDto;
     }

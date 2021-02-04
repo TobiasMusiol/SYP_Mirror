@@ -40,6 +40,7 @@ public class EventData {
   @JsonFormat(pattern = "dd.MM.yyyy, HH:mm:ss")
   @Column(
     name = "timestamp",
+    insertable = false,
     nullable=true
   )
   private Date timestamp;

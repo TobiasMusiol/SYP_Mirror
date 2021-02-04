@@ -1,20 +1,18 @@
-mosquitto_pub -h localhost -u admin -P admin -t iot_etage/instructions --message '
+mosquitto_pub -h localhost -u admin -P admin -t /iot_etage/instructions --message '
 
-mosquitto_sub -h localhost -u admin -P admin -t iot_etage/instructions
+mosquitto_sub -h localhost -u admin -P admin -t /iot_etage/instructions
 
-mosquitto_pub -h localhost -u admin -P admin -t iot_etage/sensordata --message
+mosquitto_pub -h localhost -u admin -P admin -t /iot_etage/sensordata --message
 
-mosquitto_pub -h localhost -u admin -P admin -t iot_etage/eventdata --message
+mosquitto_pub -h localhost -u admin -P admin -t /iot_etage/eventdata --message
 
 #SensorData
-{"UID": "1", "sensorType": "air", "payload": "14.6" }
-
-{ "UID": "1", "sensorType": "LIGHTLEVEL_INDOOR", "payload": "14.6" }
+{ "UID": 1001, "sensorType": "LIGHTLEVEL_INDOOR", "payload": "14.6" }
 
 
 #EventData
-
-{ "id": 0, "uid": 1001, "action": "switchMode", "oldState": "Test 3", "newState": "auto", "trigger": "light" }
+{ "UID": 1001, "action": "switchMode", "oldState": "man", "newState": "auto", "trigger": "light" }
+{ "UID": 1001, "action": "switchMode", "oldState": "man", "newState": "man", "trigger": "light" }
 
 mosquitto_pub -h localhost -u admin -P admin -t iot_etage/instructions/response --message '{ "MCUID": 1001, "action": "setThreshold", "success" : "true", "message": "Why it failed." }'
 

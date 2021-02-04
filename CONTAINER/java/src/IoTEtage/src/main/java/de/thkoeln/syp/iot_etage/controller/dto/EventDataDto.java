@@ -3,16 +3,16 @@ package de.thkoeln.syp.iot_etage.controller.dto;
 import java.util.Date;
 import javax.validation.constraints.*;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class EventDataDto {
 
     private long id;
+
     @Positive
     @JsonProperty("UID")
     private int uid;
-    private SensorType sensorType;
+
     @NotEmpty(message = "Aktion darf nicht leer sein.")
     private String action;
 
@@ -107,13 +107,5 @@ public class EventDataDto {
 
   public void setUid(int uid) {
     this.uid = uid;
-  }
-
-  public SensorType getSensorType() {
-    return sensorType;
-  }
-
-  public void setSensorType(SensorType sensorType) {
-    this.sensorType = sensorType;
   }
 }

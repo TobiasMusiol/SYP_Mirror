@@ -30,9 +30,11 @@ public class MqttSubEventHandler implements MessageHandler {
     } catch (JsonMappingException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
+      return;
     } catch (JsonProcessingException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
+      return;
     }
     newEventDataDto = this.eventService.createEvent(newEventDataDto);
     System.out.println("Event ID: " + newEventDataDto.getId());

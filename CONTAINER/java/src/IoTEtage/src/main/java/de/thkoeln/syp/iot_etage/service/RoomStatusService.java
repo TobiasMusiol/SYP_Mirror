@@ -66,81 +66,42 @@ public class RoomStatusService {
 
   public InstructionResponseDto changeRoomStatus(InstructionDto instrDto){
 
-    boolean allow = false;
-
-    //UserPrincipal
-    SecurityContext context = SecurityContextHolder.getContext();
-    Authentication auth = context.getAuthentication();
-    UserPrincipal userPrincial = (UserPrincipal) auth.getPrincipal();
-
-    //Debu 
-    String test1 = instrDto.getAction();
-    Object test2 = instrDto.getPayload().get("state");
-
-
-
-
-
-
-    //Debug Ende 
-    if (
-      (instrDto.getAction().equals("setState") && instrDto.getPayload().get("state").equals("frei"))
-      &&
-      (userPrincial.getUser().getAppRole() == AppRole.ADMIN || userPrincial.getUser().getAppRole() == AppRole.FACILITY_MANAGER)
-    ){
-      allow = true;
-    }
-    else if(
-      instrDto.getAction() == "setThreshold"
-      &&
-      (userPrincial.getUser().getAppRole() == AppRole.ADMIN || userPrincial.getUser().getAppRole() == AppRole.FACILITY_MANAGER)
-    ){
-      allow = true;
+    if(!this.checkPermissions(instrDto)){
+      return new InstructionResponseDto(this.mcuid, false, "Operation ist nicht erlaubt");
     }
 
-    allow=true;
-
-    if(allow){
-
-      this.instructionResponseDto = null;
-      
-      instrDto.setMcuid(this.mcuid);
+    this.instructionResponseDto = null;
     
-      ObjectMapper objMapper = new ObjectMapper();
-      String jsonString = null;
+    instrDto.setMcuid(this.mcuid);
+  
+    ObjectMapper objMapper = new ObjectMapper();
+    String jsonString = null;
 
-      try {
-        jsonString = objMapper.writeValueAsString(instrDto);
-      } catch (JsonProcessingException e) {
-        e.printStackTrace();
-        return new InstructionResponseDto(this.mcuid, false, "Falsches Instruction Format");
-      }
+    try {
+      jsonString = objMapper.writeValueAsString(instrDto);
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
+      return new InstructionResponseDto(this.mcuid, false, "Falsches Instruction Format");
+    }
 
-      if(this.processingLatch != null && this.processingLatch.getCount() > 0){
-        return new InstructionResponseDto(this.mcuid, false, "Andere Instruction wird ausgeführt");
-      }
+    if(this.processingLatch != null && this.processingLatch.getCount() > 0){
+      return new InstructionResponseDto(this.mcuid, false, "Andere Instruction wird ausgeführt");
+    }
 
-      this.processingLatch = new CountDownLatch(1);
-      this.instructionTopicGateway.sendToMqtt(jsonString);
+    this.processingLatch = new CountDownLatch(1);
+    this.instructionTopicGateway.sendToMqtt(jsonString);
 
-      try {
-        this.processingLatch.await(20, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-        return new InstructionResponseDto(this.mcuid, false, "Interrupt Fehler auf dem Server");
-      }
+    try {
+      this.processingLatch.await(20, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return new InstructionResponseDto(this.mcuid, false, "Interrupt Fehler auf dem Server");
+    }
 
-      this.roomStatus.setRoomModus((RoomModus)instrDto.getPayload().get("state"));
-
-      if(instrDto.getAction() == "setState"){
-        this.roomStatus.setRoomModus((RoomModus) instrDto.getPayload().get("state"));
-      }
-
-      if (this.instructionResponseDto == null){
-        this.processingLatch = null;
-        return new InstructionResponseDto(this.mcuid, false, "Keine Antwort von MCU");
-      }
+    if (this.instructionResponseDto == null){
+      this.processingLatch = null;
+      return new InstructionResponseDto(this.mcuid, false, "Keine Antwort von MCU");
     }
 
     return this.instructionResponseDto;
@@ -153,6 +114,40 @@ public class RoomStatusService {
     System.out.println("YES!!! InstructionResponse Recieved");
     this.instructionResponseDto = instResDto;
     this.processingLatch.countDown();
-    this.processingLatch = null;
+  }
+
+  public boolean checkPermissions(InstructionDto instrDto){
+    boolean allowed = false;
+
+    //UserPrincipal
+    SecurityContext context = SecurityContextHolder.getContext();
+    Authentication auth = context.getAuthentication();
+    UserPrincipal userPrincial = (UserPrincipal) auth.getPrincipal();
+
+    //DebuG
+    String test1 = instrDto.getAction();
+    Object test2 = instrDto.getPayload().get("state");
+
+    //Debug Ende 
+
+    if (
+      (instrDto.getAction().equals("setState") && instrDto.getPayload().get("state").equals("frei"))
+      &&
+      (userPrincial.getUser().getAppRole() == AppRole.ADMIN || userPrincial.getUser().getAppRole() == AppRole.FACILITY_MANAGER)
+    ){
+      allowed = true;
+    }
+
+    else if (instrDto.getAction().equals("setState") && !instrDto.getPayload().get("state").equals("frei")){
+        allowed = true;
+    }
+    else if(
+      instrDto.getAction() == "setThreshold"
+      &&
+      (userPrincial.getUser().getAppRole() == AppRole.ADMIN || userPrincial.getUser().getAppRole() == AppRole.FACILITY_MANAGER)
+    ){
+      allowed = true;
+    }
+    return allowed;
   }
 }

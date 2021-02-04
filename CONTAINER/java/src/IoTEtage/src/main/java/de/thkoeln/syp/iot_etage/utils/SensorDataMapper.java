@@ -11,22 +11,26 @@ import de.thkoeln.syp.iot_etage.domain.entity.SensorData;
 public class SensorDataMapper {
 
   public static SensorData convertSensorDataDtoToSensorData(SensorDataDto sensorDataDto){
-    return new SensorData(
-      sensorDataDto.getId(),
-      sensorDataDto.getUid(),
-      sensorDataDto.getSensorType(),
-      sensorDataDto.getPayload(),
-      new Date()
-    );
+    SensorData sensorData = new SensorData();
+
+    sensorData.setId(sensorDataDto.getId());
+    sensorData.setUid(sensorDataDto.getUid());
+    sensorData.setSensorType(sensorDataDto.getSensorType());
+    sensorData.setPayload(sensorDataDto.getPayload());
+    sensorData.setTimestamp(sensorDataDto.getTimestamp());
+
+    return sensorData;
   }
 
   public static SensorDataDto convertSensorDataToSensorDataDto(SensorData sensorData){
-    return new SensorDataDto(
-      sensorData.getId(),
-      sensorData.getUid(),
-      sensorData.getSensorType(),
-      sensorData.getPayload(),
-      sensorData.getTimeStamp()
-    );
+    SensorDataDto sensorDataDto = new SensorDataDto();
+
+    sensorDataDto.setId(sensorData.getId());
+    sensorDataDto.setUid(sensorData.getUid());
+    sensorDataDto.setSensorType(sensorData.getSensorType());
+    sensorDataDto.setPayload(sensorData.getPayload());
+    sensorDataDto.setTimestamp(sensorData.getTimestamp());
+
+    return sensorDataDto;
   }
 }

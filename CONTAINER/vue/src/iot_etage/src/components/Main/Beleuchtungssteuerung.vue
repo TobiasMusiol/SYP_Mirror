@@ -90,7 +90,7 @@ export default {
         if (data.state === "AUTO") {
           //true = Auto, false = Man
           this.switch1 = true;
-        } else if (data.state === "MANU") {
+        } else if (data.state === "MAN") {
           this.switch1 = false;
         } else {
           this.switch1 = true;
@@ -155,7 +155,7 @@ export default {
       console.log(
         `Changing mode to ${this.switch1 ? "automatisch" : "manuell"}`
       );
-      let targetMode = this.switch1 ? "auto" : "manu";
+      let targetMode = this.switch1 ? "auto" : "man";
       let json = {
         "MCUID": 1001,
         "action": "switchMode",
