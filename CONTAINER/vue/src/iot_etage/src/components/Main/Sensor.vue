@@ -60,7 +60,7 @@ export default {
         },
         {
           text: "UID",
-          value: "uid",
+          value: "UID",
         },
         {
           text: "Sensor Typ",
@@ -88,6 +88,7 @@ export default {
     }).then((response) => {
       if (response.status === 200) {
         response.json().then((data) => {
+          console.log(data);
           this.sensors = data;
         });
       }

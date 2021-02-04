@@ -24,7 +24,7 @@ create table IF NOT EXISTS "iot_etage_eventdata" (
   "oldstate" varchar(30) NOT NULL, 
   "newstate" varchar(30) NOT NULL, 
   "trigger" varchar(30) NOT NULL, 
-  "timestamp" timestamp DEFAULT NOW()
+  "timestamp" timestamp NOT NULL DEFAULT NOW()
 );
 
 create table IF NOT EXISTS

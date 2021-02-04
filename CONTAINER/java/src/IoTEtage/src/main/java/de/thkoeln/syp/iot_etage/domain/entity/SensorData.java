@@ -24,7 +24,11 @@ public class SensorData {
     private String payload;
 
     @JsonFormat(pattern = "dd.MM.yyyy, HH:mm:ss")
-    @Column(name="timestamp")
+    @Column(
+      name="timestamp",
+      insertable = false,
+      nullable=false
+    )
     private Date timestamp;
 
     public SensorData(long id, long uid, String sensorType, String payload, Date timestamp){
@@ -69,7 +73,7 @@ public class SensorData {
         this.payload = payload;
     }
 
-    public Date getTimeStamp() {
+    public Date getTimestamp() {
         return this.timestamp;
     }
 

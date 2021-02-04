@@ -17,7 +17,10 @@
                   <v-row align="center">
                     <v-col cols="6">Status</v-col>
                     <template
-                      v-if="this.$store.state.usertype === 'FM' || 'ADMIN'"
+                      v-if="
+                        usertype === userTypes.ADMIN ||
+                        usertype === userTypes.FM
+                      "
                     >
                       <v-col cols="6">
                         <v-select
@@ -29,7 +32,7 @@
                         ></v-select>
                       </v-col>
                     </template>
-                    <template v-if="this.$store.state.usertype === 'OW'">
+                    <template v-if="usertype === userTypes.OW">
                       <v-col cols="6">
                         <v-select
                           v-model="selected"
@@ -82,12 +85,48 @@ export default {
       roomstateUser: ["frei", "besetzt"],
       threshold: 20,
       selected: null,
+      userTypes: config.userTypes,
     };
   },
   computed: {
     usertype: function () {
-      return this.$store.state.usertype;
+      return this.$store.state.user.usertype;
     },
+  },
+
+  mounted: async function () {
+    let response = null;
+    let data = null;
+    try {
+      response = await fetch(`${config.urls.backend.base}/${this.appName}`, {
+        method: "get",
+        headers: {
+          ...config.headers,
+          "Authorization": localStorage.getItem("user-token"),
+        },
+      });
+    } catch (e) {
+      this.$store.commit("toggleAlert", {
+        alertType: "info",
+        alertMessage: "Fehler beim GET Request",
+        showAlert: true,
+      });
+      return;
+    }
+
+    if (response.status === 200) {
+      data = await response.json();
+      console.log(data);
+      if (data.roomModus !== "NO DATA") {
+        this.selected = data.roomModus;
+      } else {
+        this.$store.commit("toggleAlert", {
+          alertType: "info",
+          alertMessage: "Fehler beim Post Request",
+          showAlert: true,
+        });
+      }
+    }
   },
 
   methods: {
@@ -101,10 +140,16 @@ export default {
           "Authorization": localStorage.getItem("user-token"),
         },
         body: JSON.stringify(jsonObj),
-      }).then((response) => {
+      }).then(async (response) => {
         if (response.status === 200) {
           //TODO Richtigen Response auswerten
           console.log("success");
+          const data = await response.json();
+          this.$store.commit("toggleAlert", {
+            alertType: "info",
+            alertMessage: data.message,
+            showAlert: true,
+          });
         } else {
           this.$store.commit("toggleAlert", {
             alertType: "info",

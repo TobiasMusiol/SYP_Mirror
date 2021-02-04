@@ -64,6 +64,10 @@ export default {
         },
         {
           text: "Aktion",
+          value: "UID",
+        },
+        {
+          text: "Aktion",
           value: "action",
           /*
         filter: (value) => {
