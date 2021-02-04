@@ -27,7 +27,7 @@ public class AirService {
   private static final Logger logger = LoggerFactory.getLogger(AirService.class);
 
   private final int mcuid = 1003;
-  private final String sensorType = "TEMP";
+  private final String sensorType = "TEMPERATURE";
   private final String action = "switchMode";
 
   private CountDownLatch processingLatch;
