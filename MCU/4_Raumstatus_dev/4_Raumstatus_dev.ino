@@ -198,7 +198,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         }
       }
       
-      else if(state == "belegt"){
+      else if(state == "besetzt"){
         
         if(raumstatus != BELEGT){
           raumstatus = BELEGT;
@@ -227,13 +227,13 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
       }
       
       else{
-        sendResponse(action, false, "Unknown State.");
+        sendResponse(action, false, "Unbekannter Zustand.");
       }
       Serial.print("Neuer Status: ");
       Serial.println(state);
     }
     else{
-      sendResponse(action, false, "Unknown action.");
+      sendResponse(action, false, "Unbekannte Aktion.");
     }
   }
 }

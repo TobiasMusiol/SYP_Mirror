@@ -9,11 +9,13 @@
 #define LIGHT_SENSOR_PIN A0
 
 //Modus
+#define MANUSTR "man"
+#define AUTOSTR "auto"
 typedef enum {AUTO, MANU}Modus;
 Modus modus = AUTO;
 
 //Lichtstaerke
-#define PWM_MAX 600                       //Max Wert fuer PWM
+#define PWM_MAX 1023                       //Max Wert fuer PWM
 int PWM_OUT = 0;
 int PWM_OUT_PC = 0;
 int PWM_SENSOR = 0;
@@ -153,25 +155,25 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
       String targetMode = docIn["payload"]["targetMode"];
       String oldState;
       
-      if(modus == AUTO) oldState = "auto";
-      else oldState = "manuell";
+      if(modus == AUTO) oldState = AUTOSTR;
+      else oldState = MANUSTR;
       
-      if(targetMode == "auto"){
+      if(targetMode == AUTOSTR){
         
         if(modus != AUTO){
           modus = AUTO;
-          sendEventData(action, oldState, "auto", "human");
+          sendEventData(action, oldState, AUTOSTR, "human");
           sendResponse(action, true, "");
         }
         else{
           sendResponse(action, false, "Bereits im Automatik Modus.");
         }
       }
-      else if(targetMode == "manu"){
+      else if(targetMode == MANUSTR){
         
         if(modus != MANU){
           modus = MANU;
-          sendEventData(action, oldState, "manuell", "human");
+          sendEventData(action, oldState, MANUSTR, "human");
           sendResponse(action, true, "");
         }
         else{
@@ -256,9 +258,9 @@ void setup() {
   /***************************NETZWERK_BIS_HIER****************************/
   //Aktuellen Zustand senden
   String modeString;
-  if(modus == AUTO) modeString = "AUTOMATIK";
-  else modeString = "MANUEL";
-  sendEventData("INITIAL_MODUS","",modeString,HOSTNAME);
+  if(modus == AUTO) modeString = AUTOSTR;
+  else modeString = MANUSTR;
+  sendEventData("switchModus","",modeString,HOSTNAME);
 }
 
 void loop() {
@@ -305,9 +307,8 @@ void loop() {
   }
   
   //Automatik Modus
-  else{
-    PWM_OUT = 1023 
-    - PWM_SENSOR;
+  else{ 
+    PWM_OUT = 1023 - PWM_SENSOR;
     if(PWM_OUT > PWM_MAX) PWM_OUT = PWM_MAX;   //Begrenzung, damit die LED Kette nicht zu Warm wird
     else if(PWM_OUT < 0) PWM_OUT = 0;
     PWM_OUT_PC = PWM_OUT*100/PWM_MAX;         //PWM Wert in Prozent umrechnen

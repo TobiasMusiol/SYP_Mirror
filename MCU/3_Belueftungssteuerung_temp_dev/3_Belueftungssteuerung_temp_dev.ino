@@ -22,6 +22,8 @@ Adafruit_BME280 bme; // I2C
 
 
 //Programmzustand
+#define MANUSTR "man"
+#define AUTOSTR "auto"
 typedef enum{MANU,AUTO} Modus;
 Modus modus = AUTO;
 
@@ -163,7 +165,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
       String targetMode = docIn["payload"]["targetMode"];
       
       //Automatik
-      if(targetMode == "auto"){
+      if(targetMode == AUTOSTR){
         
         if(modus == AUTO){
           sendResponse(action, false, "Bereits im automatik Modus.");
@@ -171,11 +173,11 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         else{
           modus = AUTO;
           sendResponse(action, true, "");
-          sendEventData(action,"MANUELL","AUTOMATIK","human");
+          sendEventData(action,MANUSTR,AUTOSTR,"human");
         } 
       }
       //Manuell
-      else if(targetMode == "man"){
+      else if(targetMode == MANUSTR){
         
         if(modus == MANU){
           sendResponse(action, false,"Bereits im manuellen Modus.");
@@ -183,7 +185,7 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         else{
           modus = MANU;
           sendResponse(action, true, "");
-          sendEventData(action,"AUTOMATIK","MANUELL","human");
+          sendEventData(action,AUTOSTR,MANUSTR,"human");
         }
       }
       else{
@@ -305,9 +307,9 @@ void setup() {
   /***************************NETZWERK_BIS_HIER****************************/
   //Aktuellen Zustand senden
   String modeString;
-  if(modus == AUTO) modeString = "AUTOMATIK";
-  else modeString = "MANUEL";
-  sendEventData("INITIA_MODUS","",modeString,HOSTNAME);
+  if(modus == AUTO) modeString = AUTOSTR;
+  else modeString = MANUSTR;
+  sendEventData("switchMode","",modeString,HOSTNAME);
 }
 
 void loop() {

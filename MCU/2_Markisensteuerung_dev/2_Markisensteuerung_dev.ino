@@ -18,6 +18,8 @@ const int steps = stepsPerRev * REVS;     //Schritte fuer eine Umdrehung
 Stepper myStepper(stepsPerRev, MPIN1, MPIN3, MPIN2, MPIN4);
 
 //Programmzustand
+#define MANUSTR "man"
+#define AUTOSTR "auto"
 typedef enum{MANU,AUTO} Modus;
 Modus modus = AUTO;
 
@@ -51,7 +53,7 @@ void fahre_hoch(){
     //Serial.println(i);
   }
   motor_abschalten();
-  sendEventData("toogle", "isDown", "isUp", HOSTNAME);
+  sendEventData("setTogle", "isDown", "isUp", HOSTNAME);
   istOben = 1;
   istUnten = 0;
 }
@@ -203,14 +205,14 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
       String targetMode = docIn["payload"]["targetMode"];
       String oldState;
       
-      if(modus == AUTO) oldState = "auto";
-      else oldState = "manuell";
+      if(modus == AUTO) oldState = AUTOSTR;
+      else oldState = MANUSTR;
       
-      if(targetMode == "auto"){
+      if(targetMode == AUTOSTR){
         
         if(modus != AUTO){
           modus = AUTO;
-          sendEventData(action, oldState, "auto", "human");
+          sendEventData(action, oldState, AUTOSTR, "human");
           sendResponse(action, true, "");
         }
         else{
@@ -218,11 +220,11 @@ void receivedCallback(char* topic, byte* payload, unsigned int length)
         }
         
       }
-      else if(targetMode == "man"){
+      else if(targetMode == MANUSTR){
         
         if(modus != MANU){
           modus = MANU;
-          sendEventData(action, oldState, "manuell", "human");
+          sendEventData(action, oldState, MANUSTR, "human");
           sendResponse(action, true, "");
         }
         else{
@@ -342,9 +344,9 @@ void setup() {
   /***************************NETZWERK_BIS_HIER****************************/  
   //Aktuellen Zustand senden
   String modeString;
-  if(modus == AUTO) modeString = "AUTOMATIK";
-  else modeString = "MANUEL";
-  sendEventData("INITIAL_MODUS","",modeString,HOSTNAME);
+  if(modus == AUTO) modeString = AUTOSTR;
+  else modeString = MANUSTR;
+  sendEventData("switchMode","",modeString,HOSTNAME);
 }       
 
 void loop() {
@@ -387,11 +389,11 @@ void loop() {
   if(modus == AUTO){
     
 
-    if(PWM_PC <= threshold && istOben == 1){
-      fahre_runter();
-    }
-    else if(PWM_PC > threshold && istUnten == 1){
+    if(PWM_PC <= threshold && istUnten == 1){
       fahre_hoch();
+    }
+    else if(PWM_PC > threshold && istOben == 1){
+      fahre_runter();
     }
     else{
       motor_abschalten();
