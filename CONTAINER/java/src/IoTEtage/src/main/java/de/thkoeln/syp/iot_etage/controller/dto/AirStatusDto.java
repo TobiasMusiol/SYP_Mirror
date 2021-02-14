@@ -7,8 +7,9 @@ import de.thkoeln.syp.iot_etage.domain.helper.State;
 public class AirStatusDto {
   @NotNull
   private State state;
-  private int temperatur;
-  private String sensorValue;
+  private String sensorValueTemp;
+  private String sensorValueHumidity;
+  private String sensorValueAirPressure;
 
   public State getState() {
     return state;
@@ -18,20 +19,28 @@ public class AirStatusDto {
     this.state = state;
   }
 
-  public int getTemperatur() {
-    return temperatur;
+  public String getSensorValueTemp() {
+    return sensorValueTemp;
   }
 
-  public void setTemperatur(int temperatur) {
-    this.temperatur = temperatur;
+  public void setSensorValueTemp(String sensorValueTemp) {
+    this.sensorValueTemp = sensorValueTemp;
   }
 
-  public String getSensorValue() {
-    return sensorValue;
+  public String getSensorValueHumidity() {
+    return sensorValueHumidity;
   }
 
-  public void setSensorValue(String sensorValue) {
-    this.sensorValue = sensorValue;
+  public void setSensorValueHumidity(String sensorValueHumidity) {
+    this.sensorValueHumidity = sensorValueHumidity;
+  }
+
+  public String getSensorValueAirPressure() {
+    return sensorValueAirPressure;
+  }
+
+  public void setSensorValueAirPressure(String sensorValueAirPressure) {
+    this.sensorValueAirPressure = sensorValueAirPressure;
   }
 
   

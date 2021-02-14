@@ -1,5 +1,7 @@
 package de.thkoeln.syp.iot_etage.service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -9,19 +11,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import de.thkoeln.syp.iot_etage.controller.dto.InstructionDto;
 import de.thkoeln.syp.iot_etage.controller.dto.LightStatusDto;
 import de.thkoeln.syp.iot_etage.domain.entity.EventData;
 import de.thkoeln.syp.iot_etage.domain.entity.SensorData;
 import de.thkoeln.syp.iot_etage.domain.helper.State;
-import de.thkoeln.syp.iot_etage.domain.model.LightStatus;
 import de.thkoeln.syp.iot_etage.domain.repository.EventRepository;
 import de.thkoeln.syp.iot_etage.domain.repository.SensorRepository;
 import de.thkoeln.syp.iot_etage.mqtt.InstructionResponseDto;
 import de.thkoeln.syp.iot_etage.mqtt.MqttConfiguration.InstructionTopicGateway;
-
 /**
  * Service für Beleuchtungssteueurng
  */
@@ -29,6 +37,9 @@ import de.thkoeln.syp.iot_etage.mqtt.MqttConfiguration.InstructionTopicGateway;
 public class LightService {
 
   private static final Logger logger = LoggerFactory.getLogger(LightService.class);
+  
+  @Value("${thingsboard.telemetryurl.mcu1001}")
+  private String url;
 
   private final int mcuid = 1001;
   private final String sensorType = "LIGHTLEVEL_INDOOR";
@@ -36,8 +47,6 @@ public class LightService {
   private CountDownLatch processingLatch;
   private InstructionResponseDto instructionResponse;
 
-  @Autowired
-  private LightStatus lightStatus;
   @Autowired
   private InstructionTopicGateway instructionTopicGateways;
   @Autowired
@@ -125,5 +134,33 @@ public class LightService {
     System.out.println("YES!!! InstructionResponse Recieved");
     this.instructionResponse = instrRes;
     this.processingLatch.countDown();
+  }
+
+  public void sentToThingsboard(String payload){
+
+    Map<String, Double> thingsBoardMessage = new HashMap<>();
+
+    thingsBoardMessage.put("brightness", Double.valueOf(payload));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    
+    HttpEntity<Map<String, Double>> httpBody = new HttpEntity<>(thingsBoardMessage);
+
+    RestTemplate request = new RestTemplate();
+    
+    ResponseEntity<Object> response = null;
+
+    try{
+    response = request.postForEntity(this.url, httpBody, Object.class);
+    }catch(RestClientException e){
+      //e.printStackTrace();
+      this.logger.error("Error beim Senden an Thingsboard");
+      return;
+    }
+    
+    if (response.getStatusCode() == HttpStatus.OK){
+      System.out.println("Alles Gut");
+    }
   }
 }

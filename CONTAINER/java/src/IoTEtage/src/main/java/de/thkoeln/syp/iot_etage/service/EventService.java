@@ -10,9 +10,6 @@ import org.springframework.stereotype.Service;
 
 import de.thkoeln.syp.iot_etage.controller.dto.EventDataDto;
 import de.thkoeln.syp.iot_etage.domain.entity.EventData;
-import de.thkoeln.syp.iot_etage.domain.helper.State;
-import de.thkoeln.syp.iot_etage.domain.model.AwningStatus;
-import de.thkoeln.syp.iot_etage.domain.model.LightStatus;
 import de.thkoeln.syp.iot_etage.domain.repository.EventRepository;
 import de.thkoeln.syp.iot_etage.utils.EventDataMapper;
 
@@ -28,18 +25,13 @@ public class EventService {
 
     private final EventRepository eventRepository;
 
-    private final LightStatus lightStatus;
-    private final AwningStatus awningStatus;
+
     //Konstruktor
     @Autowired
     public EventService(
-      EventRepository eventRepository, 
-      LightStatus lightStatus,
-      AwningStatus awningStatus
+      EventRepository eventRepository 
     ) {
         this.eventRepository = eventRepository;
-        this.lightStatus = lightStatus;
-        this.awningStatus = awningStatus;
     }
 
     //Methoden

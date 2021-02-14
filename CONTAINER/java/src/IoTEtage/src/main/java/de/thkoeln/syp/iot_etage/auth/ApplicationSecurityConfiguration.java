@@ -5,7 +5,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -71,8 +70,6 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
 
     http
       .authorizeRequests()
-      // .antMatchers(HttpMethod.POST, "/events").hasIpAddress("192.16.1.20")
-      // .antMatchers(HttpMethod.POST, "/sensors").hasIpAddress("192.16.1.20")
       .antMatchers("/auth/**").permitAll()
       .anyRequest().authenticated();
     
@@ -119,5 +116,4 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
   public AuthenticationManager authenticationManagerBean() throws Exception {
     return super.authenticationManagerBean();
   }
-  
 }

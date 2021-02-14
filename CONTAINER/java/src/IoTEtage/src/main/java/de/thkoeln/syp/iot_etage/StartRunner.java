@@ -33,18 +33,5 @@ public class StartRunner implements CommandLineRunner {
     catch(CustomException e){
       System.out.println("User existiert bereits");
     }
-
-    try{
-      UserDto mcuUser = new UserDto();
-      mcuUser.setId(0);
-      mcuUser.setName("mcu");
-      mcuUser.setPassword("mcu");
-      mcuUser.setRole(AppRole.MCU);
-      
-      registerMessage = authService.registerUser(mcuUser);
-      System.out.println(registerMessage);
-    }catch(CustomException e){
-      System.out.println("User existiert bereits");
-    }
   }
 }

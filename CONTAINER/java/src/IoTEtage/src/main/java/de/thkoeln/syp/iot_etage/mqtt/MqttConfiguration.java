@@ -41,7 +41,7 @@ public class MqttConfiguration {
     DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
     MqttConnectOptions options = new MqttConnectOptions();
 
-    options.setServerURIs(new String[] { "ssl://" + this.hostname + ":" + this.port, });
+    options.setServerURIs(new String[] { "ssl://" + this.hostname + ":" + this.port });
     options.setUserName(this.username);
     options.setPassword(this.password.toCharArray());
     factory.setConnectionOptions(options);

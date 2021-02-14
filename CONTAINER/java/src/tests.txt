@@ -1,20 +1,49 @@
-mosquitto_pub -h localhost -u admin -P admin -t /iot_etage/instructions --message '
+mosquitto_pub -h localhost -u admin -P admin -t /iot_etage/instructions -m 
+
+
+mosquitto_pub -h localhost -u admin -P admin -t /iot_etage/sensordata -m
+
+mosquitto_pub -h localhost -u admin -P admin -t /iot_etage/eventdata -m
+
+mosquitto_sub -h localhost -u admin -P admin -t /iot_etage/instructions/response
 
 mosquitto_sub -h localhost -u admin -P admin -t /iot_etage/instructions
 
-mosquitto_pub -h localhost -u admin -P admin -t /iot_etage/sensordata --message
+mosquitto_sub -h localhost -u admin -P admin -t /iot_etage/sensordata
 
-mosquitto_pub -h localhost -u admin -P admin -t /iot_etage/eventdata --message
+mosquitto_sub -h localhost -u admin -P admin -t /iot_etage/eventdata
+
 
 #SensorData
 { "UID": 1001, "sensorType": "LIGHTLEVEL_INDOOR", "payload": "14.6" }
+{ "UID": 1001, "sensorType": "LIGHTLEVEL_OUTDOOR", "payload": "14.6" }
+{ "UID": 1001, "sensorType": "LIGHTLEVEL_OUTDOOR", "payload": "14.6" }
+{ "UID": 1001, "sensorType": "TEMPERATURE", "payload": "14.6" }
+{ "UID": 1001, "sensorType": "LIGHTLEVEL_INDOOR", "payload": "14.6" }
+{ "UID": 1001, "sensorType": "AIRPRESSURE", "payload": "14.6" }
+{ "UID": 1001, "sensorType": "AIRQUALITY", "payload": "ok" }
+{ "UID": 1001, "sensorType": "AIRQUALITY", "payload": "not ok" }
+{ "UID": 1001, "sensorType": "LIGHTLEVEL_INDOOR", "payload": "17.6" }
+{ "UID": 1001, "sensorType": "LIGHTLEVEL_OUTDOOR", "payload": "19.6" }
 
 
 #EventData
 { "UID": 1001, "action": "switchMode", "oldState": "man", "newState": "auto", "trigger": "light" }
 { "UID": 1001, "action": "switchMode", "oldState": "man", "newState": "man", "trigger": "light" }
 
-mosquitto_pub -h localhost -u admin -P admin -t iot_etage/instructions/response --message '{ "MCUID": 1001, "action": "setThreshold", "success" : "true", "message": "Why it failed." }'
+{ "UID": 1002, "action": "switchMode", "oldState": "man", "newState": "auto", "trigger": "light" }
+{ "UID": 1002, "action": "switchMode", "oldState": "man", "newState": "man", "trigger": "light" }
 
-# Response
+{ "UID": 1003, "action": "switchMode", "oldState": "man", "newState": "auto", "trigger": "light" }
+{ "UID": 1003, "action": "switchMode", "oldState": "man", "newState": "man", "trigger": "light" }
+
+{ "UID": 1004, "action": "switchMode", "oldState": "man", "newState": "auto", "trigger": "light" }
+{ "UID": 1004, "action": "switchMode", "oldState": "man", "newState": "man", "trigger": "light" }
+
+
+# Instructions Response
+mosquitto_pub -h localhost -u admin -P admin -t iot_etage/instructions/response -m 
+
+'{ "MCUID": 1001, "action": "setThreshold", "success" : "true", "message": "Why it failed." }'
+
 '{ "MCUID": 1001, "action": "setThreshold", "success" : "true", "message": "Why it failed." }'

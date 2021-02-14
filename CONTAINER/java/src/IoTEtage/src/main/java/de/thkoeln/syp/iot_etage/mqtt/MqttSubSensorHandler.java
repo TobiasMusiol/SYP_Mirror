@@ -10,21 +10,35 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 
 import de.thkoeln.syp.iot_etage.controller.dto.SensorDataDto;
+import de.thkoeln.syp.iot_etage.domain.Settings;
+import de.thkoeln.syp.iot_etage.service.AirService;
+import de.thkoeln.syp.iot_etage.service.AwningService;
+import de.thkoeln.syp.iot_etage.service.LightService;
+import de.thkoeln.syp.iot_etage.service.RoomStatusService;
 import de.thkoeln.syp.iot_etage.service.SensorService;
 
 public class MqttSubSensorHandler implements MessageHandler {
   // Attribute
   @Autowired
-  private SensorService sensorService;
+  private Settings settings;
 
+  @Autowired
+  private SensorService sensorService;
+  
+  @Autowired
+  private AirService airService;
+  @Autowired
+  private AwningService awningService;
+  @Autowired
+  private LightService lightService;
+  @Autowired
+  private RoomStatusService roomStatusService;
+  
   // Konstruktoren
   public MqttSubSensorHandler() {
   }
 
   // Methoden
-  public void handleResponse(Message<?> message) {
-
-  }
 
   @Override
   public void handleMessage(Message<?> message) throws MessagingException {
@@ -34,13 +48,32 @@ public class MqttSubSensorHandler implements MessageHandler {
     try {
       newSensorDataDto = objectMapper.readValue(message.getPayload().toString(), SensorDataDto.class);
     } catch (JsonMappingException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
+      return;
     } catch (JsonProcessingException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
+      return;
     }
     newSensorDataDto = this.sensorService.insertSensorData(newSensorDataDto);
     System.out.println("Sensor ID: " + newSensorDataDto.getId());
+
+    if (this.settings.getSentToTB()){
+      switch ((int) newSensorDataDto.getUid()) {
+        case 1001:
+        this.lightService.sentToThingsboard(newSensorDataDto.getPayload()); 
+        break;
+        case 1002:
+        this.awningService.sentToThingsboard(newSensorDataDto.getPayload());
+        break;
+        case 1003:
+        this.airService.sentToThingsboard(newSensorDataDto);
+        break;
+        case 1005:
+        this.roomStatusService.sentToThingsboard(newSensorDataDto.getPayload());
+        break;
+        default:
+        break;
+      }
+    }
   }
 }

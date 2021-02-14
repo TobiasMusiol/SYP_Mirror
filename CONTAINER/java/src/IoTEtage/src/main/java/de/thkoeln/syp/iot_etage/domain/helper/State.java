@@ -1,5 +1,7 @@
 package de.thkoeln.syp.iot_etage.domain.helper;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum State{
   NO_DATA("no data"),
   AUTO("auto"),
@@ -10,5 +12,10 @@ public enum State{
   //Konstruktor
   private State(String name){
     this.value = name;
+  }
+
+  @JsonValue
+  public String getValue() {
+    return value;
   }
 }

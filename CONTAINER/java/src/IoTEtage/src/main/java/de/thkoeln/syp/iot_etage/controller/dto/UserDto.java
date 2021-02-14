@@ -1,9 +1,6 @@
 package de.thkoeln.syp.iot_etage.controller.dto;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 import de.thkoeln.syp.iot_etage.auth.helper.AppRole;
 

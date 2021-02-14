@@ -9,7 +9,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 
-import de.thkoeln.syp.iot_etage.domain.model.RoomStatus;
 import de.thkoeln.syp.iot_etage.service.AirService;
 import de.thkoeln.syp.iot_etage.service.AwningService;
 import de.thkoeln.syp.iot_etage.service.LightService;

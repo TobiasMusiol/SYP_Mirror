@@ -1,7 +1,6 @@
 package de.thkoeln.syp.iot_etage.controller;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +9,6 @@ import java.util.stream.Stream;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -86,7 +84,7 @@ public class AuthController {
     List<AppRole> appRoles = new ArrayList<>();
 
     Stream.of(AppRole.values()).forEach(appRole -> {
-      if (appRole != AppRole.ADMIN && appRole != AppRole.MCU){
+      if (appRole != AppRole.ADMIN){
         appRoles.add(appRole);
       }
     });

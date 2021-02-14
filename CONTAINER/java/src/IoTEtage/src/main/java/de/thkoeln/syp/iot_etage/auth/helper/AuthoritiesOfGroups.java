@@ -7,9 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ch.qos.logback.core.spi.AppenderAttachable;
-
-
 public class AuthoritiesOfGroups {
 
   // Configured Groups
@@ -40,7 +37,7 @@ public class AuthoritiesOfGroups {
       AppAuthority.READ_AIR,
       AppAuthority.READ_AWNING,
       AppAuthority.READ_ROOM_STATUS,
-      AppAuthority.EDIT_ROOM_STATUS_OFFICE_WORKER,
+      AppAuthority.EDIT_ROOM_STATUS,
       AppAuthority.READ_EVENTS,
       AppAuthority.READ_SENSORS
     };
@@ -52,7 +49,7 @@ public class AuthoritiesOfGroups {
       AppAuthority.READ_LIGHT,
       AppAuthority.EDIT_LIGHT,
       AppAuthority.READ_ROOM_STATUS,
-      AppAuthority.EDIT_ROOM_STATUS_FM,
+      AppAuthority.EDIT_ROOM_STATUS,
       AppAuthority.READ_EVENTS,
       AppAuthority.EDIT_EVENTS,
       AppAuthority.READ_SENSORS,
@@ -64,7 +61,6 @@ public class AuthoritiesOfGroups {
     grPerm = new HashMap<>();
     grPerm.put(AppRole.ADMIN, new ArrayList<>());
     grPerm.put(AppRole.USER, new ArrayList<>(Arrays.asList(AuthoritiesOfGroups.USER)));
-    grPerm.put(AppRole.MCU, new ArrayList<>(Arrays.asList(AuthoritiesOfGroups.MCU)));
     grPerm.put(AppRole.FACILITY_MANAGER, new ArrayList<>(Arrays.asList(AuthoritiesOfGroups.FACILITY_MANAGER_PERMISSIONS)));
     grPerm.put(AppRole.OFFICE_WORKER, new ArrayList<>(Arrays.asList(AuthoritiesOfGroups.OFFICE_WORKER_PERMISSIONS)));
     grPerm.put(AppRole.ADMIN, new ArrayList<>(Arrays.asList(AuthoritiesOfGroups.ADMIN)));

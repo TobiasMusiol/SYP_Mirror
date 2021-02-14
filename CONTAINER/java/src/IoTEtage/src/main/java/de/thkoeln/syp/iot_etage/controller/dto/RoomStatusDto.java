@@ -7,10 +7,8 @@ import de.thkoeln.syp.iot_etage.domain.helper.RoomModus;
 public class RoomStatusDto {
   @NotNull(message = "RoomStatus darf nicht NULL sein")
   private RoomModus roomModus;
-
-  public RoomStatusDto(RoomModus roomModus){
-    this.roomModus = roomModus;
-  }
+  private String airQuality;
+  private String sensorValue;
 
   public RoomStatusDto(){}
 
@@ -20,5 +18,21 @@ public class RoomStatusDto {
 
   public void setRoomModus(RoomModus roomModus) {
     this.roomModus = roomModus;
+  }
+
+  public String getAirQuality() {
+    return airQuality;
+  }
+
+  public void setAirQuality(String airQuality) {
+    this.airQuality = airQuality;
+  }
+
+  public String getSensorValue() {
+    return sensorValue;
+  }
+
+  public void setSensorValue(String sensorValue) {
+    this.sensorValue = sensorValue;
   }
 }

@@ -1,5 +1,7 @@
 package de.thkoeln.syp.iot_etage.service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -9,15 +11,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import de.thkoeln.syp.iot_etage.controller.dto.AwningStatusDto;
 import de.thkoeln.syp.iot_etage.controller.dto.InstructionDto;
 import de.thkoeln.syp.iot_etage.domain.entity.EventData;
 import de.thkoeln.syp.iot_etage.domain.entity.SensorData;
 import de.thkoeln.syp.iot_etage.domain.helper.State;
-import de.thkoeln.syp.iot_etage.domain.model.AwningStatus;
-import de.thkoeln.syp.iot_etage.domain.model.LightStatus;
 import de.thkoeln.syp.iot_etage.domain.repository.EventRepository;
 import de.thkoeln.syp.iot_etage.domain.repository.SensorRepository;
 import de.thkoeln.syp.iot_etage.mqtt.InstructionResponseDto;
@@ -32,6 +40,9 @@ public class AwningService {
   
   private static final Logger logger = LoggerFactory.getLogger(AwningService.class);
 
+  @Value("${thingsboard.telemetryurl.mcu1002}")
+  private String url;
+
   private final int mcuid = 1002;
   private final String sendorType = "LIGHTLEVEL_OUTDOOR";
   private final String action="switchMode";
@@ -39,7 +50,6 @@ public class AwningService {
   private CountDownLatch processingLatch;
   private InstructionResponseDto instRes;
 
-  private final AwningStatus awningStatus;
   private final InstructionTopicGateway instrTopicGateway;
   private final EventRepository eventRepo;
   private final SensorRepository sensorRepo;
@@ -47,12 +57,10 @@ public class AwningService {
 
   @Autowired
   public AwningService(
-    AwningStatus awningStatus,
     InstructionTopicGateway instrTopicGateway,
     EventRepository eventRepo,
     SensorRepository sensorRepo
   ){
-    this.awningStatus = awningStatus;
     this.instrTopicGateway = instrTopicGateway;
     this.eventRepo = eventRepo;
     this.sensorRepo = sensorRepo;
@@ -71,7 +79,7 @@ public class AwningService {
       awningStatusDto.setState(State.NO_DATA);
     }
     else {
-      awningStatusDto.setState(this.awningStatus.getState());
+      awningStatusDto.setState(State.valueOf(eventData.getNewState().toUpperCase()));
     }
 
     SensorData sensorData = this.sensorRepo.findTopBySensorTypeOrderByTimestampDesc(this.sendorType);
@@ -143,5 +151,34 @@ public class AwningService {
     System.out.println("YES!!! InstructionResponse Recieved");
     this.instRes = instRes;
     this.processingLatch.countDown();
+  }
+
+  public void sentToThingsboard(String payload){
+
+    Map<String, Double> thingsBoardMessage = new HashMap<>();
+
+    thingsBoardMessage.put("brightness", Double.valueOf(payload));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    
+    HttpEntity<Map<String, Double>> httpBody = new HttpEntity<>(thingsBoardMessage);
+
+    RestTemplate request = new RestTemplate();
+    
+    ResponseEntity<Object> response = null;
+
+    try{
+      response = request.postForEntity(this.url, httpBody, Object.class);
+    }
+    catch(RestClientException e){
+      //e.printStackTrace();
+      this.logger.error("Error beim Senden an Thingsboard: " + e.getMessage());
+      return;
+    }
+    
+    if (response.getStatusCode() == HttpStatus.OK){
+      System.out.println("Alles Gut");
+    }
   }
 }

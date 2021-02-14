@@ -2,8 +2,6 @@ package de.thkoeln.syp.iot_etage.mqtt;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.aspectj.apache.bcel.generic.Instruction;
-
 public class InstructionResponseDto {
   // 'MCUID': 1001,
   @JsonProperty("MCUID")

@@ -52,7 +52,7 @@ public class RoomStatusController {
     produces = MediaType.APPLICATION_JSON_VALUE
   )
   @CrossOrigin
-  @PreAuthorize("hasAuthority('" + AppAuthority.Names.EDIT_ROOM_STATUS_OFFICE_FM+ "')")
+  @PreAuthorize("hasAuthority('" + AppAuthority.Names.EDIT_ROOM_STATUS+ "')")
   public ResponseEntity<ResponseDto> changeState(@Valid @RequestBody InstructionDto instructionDto){
 
     ResponseDto response = new ResponseDto();

@@ -446,3 +446,6 @@ fastapi/
 MCU/mcu_prototyp/secrets.h
 
 tbpass.txt
+
+thingsboard/
+Sitzung*
