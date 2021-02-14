@@ -53,12 +53,6 @@ double CO2_AVG = 0;
 unsigned long n = 0;
 int threshold = 50;
 
-//Programmzustand
-typedef enum{MANU,AUTO} Modus;
-Modus modus = AUTO;
-
-
-
 /***************************NETZWERK_VON_HIER****************************/
 
 //Daten Uebertragung
