@@ -26,7 +26,7 @@ services:
         ipv4_address: 192.16.1.10
     command: '/app/node_modules/.bin/vue-cli-service serve --host 0.0.0.0 --port 8080'
     #logging:
-      #driver: 'none'
+    #driver: 'none'
 
   java:
     build:
@@ -67,9 +67,9 @@ services:
       - '8884:8883'
       #- '9001:9001'
     volumes:
-      - ./mosquitto/configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - ./mosquitto/data:/mosquitto/data
-      - ./mosquitto/log:/mosquitto/log
+      - ./mosquitto/dev/configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/dev/data:/mosquitto/data
+      - ./mosquitto/dev/log:/mosquitto/log
     environment:
       - ENV=prod
     networks:

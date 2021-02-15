@@ -2,208 +2,96 @@ version: '3.8'
 services:
   nginx:
     build:
-      context: ./nginx/docker
-    image: iot_etage/nginx
-    container_name: nginx
-    hostname: nginx
-    restart: always
+      context: ./nginx
+    image: iot_etage/nginx-prod
+    container_name: nginx-prod
+    hostname: nginx-prod
+    restart: on-failure
     depends_on:
-      - 'django'
       - 'java'
     healthcheck:
       test: curl -f http://localhost:80
+      interval: 10s
     ports:
-      - '8430:443'
-      - '8080:8080'
+      - '443:443'
+      - '80:80'
+      - '81:81'
     volumes:
-      - ./angular/src:/app
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+      - ./vue/src/iot_etage:/app/vue-dev
+      - ./nginx/data:/app/prod
     environment:
-      # - TEST=test
+      - ENV=prod
+      - VUE_APP_BASE_URL='http://192.168.2.111'
+      - VUE_APP_BACKEND_URL=http://192.168.2.111/api
     networks:
       iot-network:
         ipv4_address: 192.16.1.100
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
-
-  angular:
-    build:
-      context: ./angular/docker
-    image: iot_etage/angular
-    container_name: angular
-    hostname: angular
-    restart: always
-    depends_on:
-      - 'django'
-      - 'java'
-    healthcheck:
-      test: 'curl -f http://localhost:4200 -k'
-    ports:
-      - '4200:4200'
-    volumes:
-      - ./angular/src:/app
-    environment:
-      # - TEST=test
-    networks:
-      iot-network:
-        ipv4_address: 192.16.1.10
-    command: 'ng server --host "0.0.0.0"'
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
-
-  vue:
-    build:
-      context: ./vue/docker
-    image: vue
-    container_name: vue
-    hostname: vue
-    restart: always
-    depends_on:
-      - 'django'
-      - 'java'
-    healthcheck:
-      test: 'curl -f http://localhost:4200 -k'
-    ports:
-      - '4200:4200'
-    volumes:
-      - ./vue/src:/app
-    environment:
-      # - TEST=test
-    networks:
-      iot-network:
-        ipv4_address: 192.16.1.20
-    command: 'vue-cli-service serve --host 0.0.0.0 --port 8080'
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
-
-  django:
-    build:
-      context: ./django/docker
-    image: django
-    container_name: django
-    hostname: django
-    restart: always
-    depends_on:
-      - 'mongo'
-      - 'mysql'
-      - 'postgres'
-    healthcheck:
-      test: 'curl -f http://localhost:4200 -k'
-    ports:
-      - '8000:8000'
-    volumes:
-      - ./django/src:/app
-    environment:
-      # - TEST=test
-    networks:
-      iot-network:
-        ipv4_address: 192.16.1.30
-    command: 'ng server --host "0.0.0.0"'
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
+    # command: /bin/bash
+    # tty: yes
 
   java:
     build:
       context: ./java/docker
-    image: java
-    container_name: java
-    hostname: java
-    restart: always
+      target: prod
+    image: iot_etage/java-prod
+    container_name: java-prod
+    hostname: java-prod
+    restart: on-failure
     depends_on:
-      - 'mongo'
-      - 'mysql'
       - 'postgres'
-    healthcheck:
-      test: 'curl -f http://localhost:4200 -k'
-    ports:
-      - '4200:4200'
     volumes:
-      - ./java/src:/app
+      - ./java/src/IoTEtage/target/iot_etage-0.0.1-SNAPSHOT.jar:/app/iot_etage-0.0.1-SNAPSHOT.jar
     environment:
-      # - TEST=test
+      - ENV=prod
+    networks:
+      iot-network:
+        ipv4_address: 192.16.1.30
+
+  mosquitto:
+    build:
+      context: ./mosquitto/docker
+    image: iot_etage/mosquitto
+    container_name: mosquitto
+    hostname: mosquitto
+    restart: always
+    ports:
+      - '1883:1883'
+      - '1884:1883'
+      - '8883:8883'
+      - '8884:8883'
+    volumes:
+      - ./mosquitto/dev/configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/dev/data:/mosquitto/data
+      - ./mosquitto/dev/log:/mosquitto/log
+    environment:
+      - ENV=prod
     networks:
       iot-network:
         ipv4_address: 192.16.1.40
-    command: # ...
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
-
-  mongo:
-    build:
-      context: ./mongo/docker
-    image: mongo
-    container_name: mongo
-    hostname: mongo
-    restart: always
-    healthcheck:
-      test: echo "db.runCommand("ping").ok | mongo localhost:27017/test --quite"
-    ports:
-      - '27017:27017'
-    volumes:
-      - ./mongo/data:/data
-    environment:
-      # - TEST=test
-    networks:
-      iot-network:
-        ipv4_address: 192.16.1.50
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
-  mysql:
-    build:
-      context: ./mysql/docker
-    image: mysql
-    container_name: mysql
-    hostname: mysql
-    restart: always
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-    ports:
-      - '4200:4200'
-    volumes:
-      - ./mongo/data:/app
-    environment:
-      # - TEST=test
-    networks:
-      iot-network:
-        ipv4_address: 192.16.1.60
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
 
   postgres:
     build:
       context: ./postgres/docker
-    image: postgres
-    container_name: postgres
-    hostname: postgres
-    restart: always
+    image: postgres-prod
+    container_name: postgres-prod
+    hostname: postgres-prod
+    restart: on-failure
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
     ports:
       - '5432:5432'
     volumes:
-      - ./postgres/data:/var/lib/postgresql
+      - ./postgres/data-dev:/var/lib/postgresql
     environment:
-      # - TEST=test
+      - ENV=prod
+      - TZ=Europe/Berlin
+      - PGTZ=Europe/Berlin
+      - POSTGRES_PASSWORD=admin_password
     networks:
       iot-network:
-        ipv4_address: 192.16.1.70
-    #command: '/bin/bash'
-    #tty: true
-    #logging:
-    #  driver: 'none'
+        ipv4_address: 192.16.1.50
 
 networks:
   iot-network:
@@ -214,6 +102,4 @@ networks:
         - subnet: '192.16.1.0/24'
 
 volumes:
-  mongo-data:
-  mysql-data:
-  postgres-data:
+  postgres-data-dev:
