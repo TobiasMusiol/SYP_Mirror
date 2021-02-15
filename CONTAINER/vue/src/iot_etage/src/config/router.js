@@ -82,8 +82,6 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   store.commit('isAuthenticated');
-  console.log(store.state.user);
-  console.log(store.state.user.isAuthenticated);
   if (store.state.user.isAuthenticated || to.path === '/login') {
     return next();
   }

@@ -60,6 +60,9 @@ public class MqttInstructionResponseHandler implements MessageHandler {
       //Roomstatus
       case 1004:
         this.roomStatusService.countProcessingLatchDown(newInstructionResponseDto);
+        break;
+      default:
+        break;
     }
   }
 }

@@ -12,7 +12,6 @@ export const alert = {
       state,
       { alertType = '', alertMessage = '', showAlert = false }
     ) {
-      console.log(this);
       if (showAlert) {
         if (state.alertTimer) {
           clearTimeout(state.alertTimer);

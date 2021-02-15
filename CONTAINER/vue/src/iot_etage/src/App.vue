@@ -36,7 +36,6 @@ export default {
 
   computed: {
     alert() {
-      console.log(this.$store);
       return this.$store.state.alert;
     },
   },
@@ -45,7 +44,6 @@ export default {
       return this.test;
     },
     toggleAlert() {
-      console.log(this.$store);
       this.$store.commit("toggleAlert", {});
     },
   },

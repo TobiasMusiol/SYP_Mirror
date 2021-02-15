@@ -18,7 +18,6 @@ Vue.use(VueRouter);
 //   routes,
 // });
 
-// console.log(store);
 //Vue.config.errorHandler = (error) => ErrorService.onError(error);
 
 new Vue({

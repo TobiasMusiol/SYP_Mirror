@@ -86,7 +86,6 @@ export default {
             }
           })
           .catch((e) => {
-            console.log(this.$store);
             this.$store.commit("toggleAlert", {
               alertType: "info",
               alertMessage: "Login fehlgeschlagen",

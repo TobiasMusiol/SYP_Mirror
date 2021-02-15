@@ -38,7 +38,7 @@
 
             <v-text-field
               v-model="passwordRepeat"
-              :type="showPassword ? 'text' : 'password'"
+              :type="showPasswordRepeat ? 'text' : 'password'"
               :append-icon="showPasswordRepeat ? 'mdi-eye' : 'mdi-eye-off'"
               @click:append="showPasswordRepeat = !showPasswordRepeat"
               :rules="passwordRepeatRules"
@@ -148,7 +148,6 @@ export default {
         registerBody.password = this.password;
         registerBody.role = this.select;
 
-        console.log(JSON.stringify(registerBody));
         fetch(`${config.urls.backend.auth}/register`, {
           method: "post",
           headers: { ...config.headers },

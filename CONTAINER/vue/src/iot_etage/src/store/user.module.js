@@ -16,7 +16,6 @@ export const user = {
         let [_, tokenBody, __] = user_token['user-token'].split('.');
 
         let encodedTokenInfo = JSON.parse(atob(tokenBody));
-        console.log(encodedTokenInfo);
 
         state.username = encodedTokenInfo.sub;
         state.usertype = encodedTokenInfo.auth.authority;
@@ -41,7 +40,6 @@ export const user = {
             }
           })
           .catch((e) => {
-            console.log(this.$store);
             this.$store.commit('toggleAlert', {
               alertType: 'info',
               alertMessage: 'Login fehlgeschlagen',
@@ -49,7 +47,6 @@ export const user = {
             });
           });
       } else {
-        console.log(this.$store);
         this.commit('toggleAlert', {
           alertType: 'info',
           alertMessage: 'Login fehlgeschlagen',
@@ -63,7 +60,7 @@ export const user = {
         let tokenExp = localStorage.getItem('user-token-exp');
         if (tokenExp) {
           let renewIn = calculateRenewToken(tokenExp);
-          console.log('Renew In: ' + renewIn / 60 / 1000);
+
           if (renewIn > FIVE_MINUTES) {
             return state.isAuthenticated;
           } else if (renewIn < FIVE_MINUTES && renewIn > 0) {
@@ -106,7 +103,6 @@ export const user = {
           }
         })
         .catch((e) => {
-          console.log(this.$store);
           this.$store.commit('toggleAlert', {
             alertType: 'info',
             alertMessage: 'Login fehlgeschlagen',
@@ -133,13 +129,7 @@ const FIVE_MINUTES = 1000 * 60 * 5;
 function calculateRenewToken(expireToken) {
   let now = Date.now();
 
-  console.log('Now: ' + now);
-  console.log('Expire: ' + expireToken);
-
   let diff = expireToken * 1000 - now;
-
-  console.log(diff);
-  console.log(diff / 1000 / 60);
 
   return diff;
 }
