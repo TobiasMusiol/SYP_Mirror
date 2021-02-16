@@ -33,8 +33,7 @@ services:
 
   java:
     build:
-      context: ./java/docker
-      target: prod
+      context: ./java/docker-prod
     image: iot_etage/java-prod
     container_name: java-prod
     hostname: java-prod
@@ -42,7 +41,7 @@ services:
     depends_on:
       - 'postgres'
     volumes:
-      - ./java/src/IoTEtage/target/iot_etage-0.0.1-SNAPSHOT.jar:/app/iot_etage-0.0.1-SNAPSHOT.jar
+      - ./java/src/IoTEtage/:/app
     environment:
       - ENV=prod
     networks:
@@ -83,7 +82,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - ./postgres/data-dev:/var/lib/postgresql
+      - postgres-data-prod:/var/lib/postgresql
     environment:
       - ENV=prod
       - TZ=Europe/Berlin
@@ -102,4 +101,4 @@ networks:
         - subnet: '192.16.1.0/24'
 
 volumes:
-  postgres-data-dev:
+  postgres-data-prod:
