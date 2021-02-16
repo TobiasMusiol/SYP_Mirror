@@ -1,6 +1,7 @@
 package de.thkoeln.syp.iot_etage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,11 @@ import de.thkoeln.syp.iot_etage.service.AuthService;
 
 @Component
 public class StartRunner implements CommandLineRunner {
+
+  @Value("${application.admin.username}")
+  private String username;
+  @Value("${application.admin.userPassword}")
+  private String userPassword;
 
   @Autowired
   AuthService authService;
@@ -23,8 +29,8 @@ public class StartRunner implements CommandLineRunner {
     try{
     UserDto adminUser = new UserDto();
     adminUser.setId(0);
-    adminUser.setName("Admin");
-    adminUser.setPassword("Admin");
+    adminUser.setName(this.username);
+    adminUser.setPassword(this.userPassword);
     adminUser.setRole(AppRole.ADMIN);
 
     registerMessage = authService.registerUser(adminUser);
