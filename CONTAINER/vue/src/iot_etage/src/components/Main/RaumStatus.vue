@@ -119,12 +119,6 @@ export default {
       console.log(data);
       if (data.roomModus !== "NO DATA") {
         this.selected = data.roomModus;
-      } else {
-        this.$store.commit("toggleAlert", {
-          alertType: "info",
-          alertMessage: "Fehler beim Post Request",
-          showAlert: true,
-        });
       }
     }
   },

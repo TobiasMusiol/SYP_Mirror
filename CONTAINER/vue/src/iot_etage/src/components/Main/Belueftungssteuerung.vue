@@ -120,7 +120,7 @@ export default {
           this.switch1 = true;
         }
 
-        this.sensorValue = data.sensorValue;
+        this.sensorValue = data.sensorValueTemp;
       } else {
         this.$store.commit("toggleAlert", {
           alertType: "info",

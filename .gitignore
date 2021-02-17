@@ -449,3 +449,6 @@ tbpass.txt
 
 thingsboard/
 Sitzung*
+
+!PROD-raspberry/java/*.jar
+!PROD-raspberry/nginx/dist
